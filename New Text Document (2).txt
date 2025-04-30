@@ -1,0 +1,3603 @@
+--[[
+
+    Developed By ServersError - IcENog ( Nicotine Team )
+
+]]
+
+pcall(function()
+    local menuVisible = false
+
+    local selectedIndex = 1
+
+    local menuItems = { "Myself" }
+
+    local subMenuVisible = false
+
+    local rgbTimer = 0
+
+    local r, g, b = 255, 0, 0
+
+    local isGodModeActive = false
+
+    local godModeThread = nil
+
+    IsNoclipActive = false;
+
+    local MovingSpeed = 0;
+
+    local Scale = -1;
+
+    local FollowCamMode = false;
+
+    local speeds = {
+
+        [0] = "Very Slow",
+
+        [1] = "Slow",
+
+        [2] = "Normal",
+
+        [3] = "Fast",
+
+        [4] = "Very Fast",
+
+        [5] = "Extremely Fast",
+
+        [6] = "Extremely Fast v2.0",
+
+        [7] = "Max Speed"
+
+    }
+
+    function showLoadingScreen()
+        local loadingTime = 5000
+
+        local startTime = GetGameTimer()
+
+        while (GetGameTimer() - startTime) < loadingTime do
+            local elapsedTime = GetGameTimer() - startTime
+
+            local progress = math.min(100, math.floor((elapsedTime / loadingTime) * 100))
+
+            DisableAllControlActions(0)
+
+            DrawRect(0.5, 0.5, 1.0, 1.0, 0, 0, 0, 255)
+
+            SetTextFont(4)
+
+            SetTextProportional(1)
+
+            SetTextScale(0.0, 0.6)
+
+            SetTextColour(135, 206, 250, 255)
+
+            SetTextCentre(true)
+
+            SetTextEntry("STRING")
+
+            AddTextComponentString("Loading Nicotine Team Menu ( v Beta ), Pls Wait ...")
+
+            DrawText(0.5, 0.5)
+
+            DrawRect(0.1, 0.95, 0.2, 0.03, 255, 255, 255, 100)
+
+            DrawRect(0.1 - 0.1 + (progress * 0.001), 0.95, progress * 0.002, 0.03, 0, 255, 0, 255)
+
+            SetTextFont(4)
+
+            SetTextProportional(1)
+
+            SetTextScale(0.0, 0.4)
+
+            SetTextColour(255, 255, 255, 255)
+
+            SetTextCentre(true)
+
+            SetTextEntry("STRING")
+
+            AddTextComponentString(tostring(progress) .. "%")
+
+            DrawText(0.1, 0.94)
+
+            Citizen.Wait(0)
+        end
+
+        EnableAllControlActions(0)
+    end
+
+    function updateRGB()
+        rgbTimer = rgbTimer + 1
+
+        if rgbTimer > 0 and rgbTimer <= 100 then
+            r = 255
+
+            g = rgbTimer * 2.55
+
+            b = 0
+        elseif rgbTimer > 100 and rgbTimer <= 200 then
+            r = 255 - (rgbTimer - 100) * 2.55
+
+            g = 255
+
+            b = 0
+        elseif rgbTimer > 200 and rgbTimer <= 300 then
+            r = 0
+
+            g = 255
+
+            b = (rgbTimer - 200) * 2.55
+        elseif rgbTimer > 300 and rgbTimer <= 400 then
+            r = 0
+
+            g = 255 - (rgbTimer - 300) * 2.55
+
+            b = 255
+        elseif rgbTimer > 400 and rgbTimer <= 500 then
+            r = (rgbTimer - 400) * 2.55
+
+            g = 0
+
+            b = 255
+        elseif rgbTimer > 500 and rgbTimer <= 600 then
+            r = 255
+
+            g = 0
+
+            b = 255 - (rgbTimer - 500) * 2.55
+        end
+
+        if rgbTimer > 600 then
+            rgbTimer = 0
+        end
+    end
+
+    function drawMenu()
+        -- print("Nicotine Team Menu Myself Options ( v Beta ) Runned!")
+
+        if menuVisible then
+            updateRGB()
+
+            local menuWidth = 0.25
+
+            local menuHeight = #menuItems * 0.045 + 0.03
+
+            local menuX = 0.5
+
+            local menuY = 0.5 - menuHeight / 2
+
+            DrawRect(menuX, menuY + menuHeight / 2, menuWidth + 0.004, menuHeight + 0.004, r, g, b, 180)
+
+            DrawRect(menuX, menuY + menuHeight / 2, menuWidth, menuHeight, 0, 0, 0, 200)
+
+            SetTextFont(4)
+
+            SetTextProportional(1)
+
+            SetTextScale(0.0, 0.6)
+
+            SetTextColour(r, g, b, 255)
+
+            SetTextCentre(true)
+
+            SetTextDropShadow(2, 0, 0, 0, 255)
+
+            SetTextEntry("STRING")
+
+            AddTextComponentString("~y~NicotineTM Lua Menu")
+
+            DrawText(menuX, menuY - 0.03)
+
+            for i = 1, #menuItems do
+                if selectedIndex == i then
+                    DrawRect(menuX, menuY + 0.045 * i, menuWidth, 0.045, r, g, b, 150)
+
+                    SetTextColour(0, 0, 0, 255)
+                else
+                    SetTextColour(255, 255, 255, 255)
+                end
+
+                SetTextFont(4)
+
+                SetTextProportional(1)
+
+                SetTextScale(0.0, 0.5)
+
+                SetTextCentre(true)
+
+                SetTextDropShadow(1, 0, 0, 0, 255)
+
+                SetTextEntry("STRING")
+
+                if menuItems[i] == "God Mode ( Risky )" then
+                    local status = isGodModeActive and " ( On )" or " ( Off )"
+
+                    AddTextComponentString(menuItems[i] .. status)
+                else
+                    AddTextComponentString(menuItems[i])
+                end
+
+                if menuItems[i] == "Noclip" then
+                    local statusNC = IsNoclipActive and " ( On )" or " ( Off )"
+
+                    AddTextComponentString(menuItems[i] .. statusNC)
+                else
+                    AddTextComponentString(menuItems[i])
+                end
+
+                DrawText(menuX, menuY + 0.045 * i - 0.015)
+            end
+        end
+    end
+
+    function drawPermanentText()
+        SetTextFont(4)
+
+        SetTextProportional(1)
+
+        SetTextScale(0.0, 0.7)
+
+        SetTextColour(0, 0, 0, 255)
+
+        SetTextDropshadow(2, 255, 255, 255, 255)
+
+        SetTextEntry("STRING")
+
+        AddTextComponentString("Z - E - C")
+
+        DrawText(0.1, 0.5)
+    end
+
+    Citizen.CreateThread(function()
+        while true do
+            Citizen.Wait(0)
+
+            drawPermanentText()
+        end
+    end)
+
+    local NicotineTMdisTXT = "discord.gg/NicotineTM"
+
+    local duration = 5
+
+    local colors = {
+
+        { 255, 0,   0 },
+
+        { 0,   255, 0 },
+
+        { 0,   0,   255 },
+
+        { 255, 255, 0 },
+
+        { 255, 0,   255 },
+
+        { 0,   255, 255 },
+
+    }
+
+    local function drawText()
+        local currentTime = GetGameTimer() / 1000
+
+        local timeLeft = duration - (currentTime % duration)
+
+        local colorIndex = math.floor(timeLeft / duration * #colors) + 1
+
+        local color = colors[colorIndex]
+
+        SetTextFont(7)
+
+        SetTextScale(0.7, 0.7)
+
+        SetTextColour(color[1], color[2], color[3], 255)
+
+        SetTextOutline()
+
+        SetTextEntry("STRING")
+
+        AddTextComponentString(NicotineTMdisTXT)
+
+        local screenWidth = GetTextScreenWidth(true) / 2
+
+        local textX = 0.5 - screenWidth
+
+        DrawText(textX, 0.05)
+
+        if timeLeft <= 0 then
+            return false
+        end
+
+        return true
+    end
+
+    Citizen.CreateThread(function()
+        local startTime = GetGameTimer()
+
+        while GetGameTimer() - startTime < duration * 1000 do
+            if not drawText() then
+                break
+            end
+
+            Citizen.Wait(0)
+        end
+    end)
+
+    function toggleSubMenu()
+        if subMenuVisible then
+            menuItems = { "Myself" }
+        else
+            menuItems = { "Myself", "TPW", "Fix Vehicle", "Heal, Armor", "[OV] Heal, Armor", "[ESX] Spawn Veh",
+                "[ESX] Give Car Key", "D.V ( Delete Vehicle )", "Freecam ( Risky )", "God Mode ( Risky )",
+                "[OV] Uncomserv", "[OV] Unmute ( Urself - Temp )", "[OV] Unjail ( Temp )", "Noclip", "[OV] Un Fight Ban",
+                "Change Vehicle Random Color", "[OV] Revive", "Slay", "[OV] Random Skin Changer", "[OV] Reload Skin" }
+        end
+
+        subMenuVisible = not subMenuVisible
+
+        selectedIndex = 1
+    end
+
+    Citizen.CreateThread(function()
+        showLoadingScreen()
+
+        while true do
+            Citizen.Wait(0)
+
+            if IsControlJustReleased(1, 26) then -- C
+                menuVisible = not menuVisible
+            end
+
+            if menuVisible and IsControlJustReleased(1, 322) then -- ESC
+                menuVisible = false
+            end
+
+            if menuVisible then
+                DisableAllControlActions(0)
+
+                EnableControlAction(0, 26, true)  -- C
+
+                EnableControlAction(0, 172, true) -- Page Up
+
+                EnableControlAction(0, 173, true) -- Page Down
+
+                EnableControlAction(0, 191, true) -- Enter
+
+                drawMenu()
+
+                if IsControlJustReleased(1, 172) then -- Page Up
+                    selectedIndex = selectedIndex - 1
+
+                    if selectedIndex < 1 then
+                        selectedIndex = #menuItems
+                    end
+                elseif IsControlJustReleased(1, 173) then -- Page Down
+                    selectedIndex = selectedIndex + 1
+
+                    if selectedIndex > #menuItems then
+                        selectedIndex = 1
+                    end
+                end
+
+                if IsControlJustReleased(1, 191) then -- Enter
+                    if selectedIndex == 1 then
+                        toggleSubMenu()
+                    elseif selectedIndex == 2 then
+                        pcall(function()
+                            local playerPed = PlayerPedId()
+
+                            if (IsPedInAnyVehicle(playerPed)) then
+                                playerPed = GetVehiclePedIsUsing(playerPed)
+                            end
+
+                            local WaypointHandle = GetFirstBlipInfoId(8)
+
+                            if DoesBlipExist(WaypointHandle) then
+                                local coord = Citizen.InvokeNative(0xFA7C7F0AADF25D09, WaypointHandle,
+                                    Citizen.ResultAsVector())
+
+                                RequestCollisionAtCoord(coord.x, coord.y, -199.5)
+
+                                while not HasCollisionLoadedAroundEntity(playerPed) do
+                                    RequestCollisionAtCoord(coord.x, coord.y, -199.5)
+
+                                    Citizen.Wait(10)
+                                end
+
+                                SetEntityCoordsNoOffset(playerPed, coord.x, coord.y, -199.5, false, false, false, true)
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Teleport To Waypoint Option Runned!")
+                    elseif selectedIndex == 3 then
+                        pcall(function()
+                            function fixVehicle()
+                                local playerPed = PlayerPedId()
+
+                                local vehicle = GetVehiclePedIsIn(playerPed, false)
+
+                                if vehicle and vehicle ~= 0 then
+                                    SetVehicleFixed(vehicle)
+
+                                    SetVehicleUndriveable(vehicle, false)
+                                end
+                            end
+
+                            Citizen.CreateThread(function()
+                                while true do
+                                    Citizen.Wait(0)
+
+                                    local playerPed = PlayerPedId()
+
+                                    local vehicle = GetVehiclePedIsIn(playerPed, false)
+
+                                    if vehicle and vehicle ~= 0 then
+                                        fixVehicle()
+
+                                        break
+                                    end
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Fix Vehicle Option Runned!")
+                    elseif selectedIndex == 4 then
+                        pcall(function()
+                            function fillHealthAndArmor()
+                                local playerPed = PlayerPedId()
+
+                                SetEntityHealth(playerPed, GetEntityMaxHealth(playerPed))
+
+                                SetPedArmour(playerPed, 100)
+                            end
+
+                            fillHealthAndArmor()
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Heal, Armor Option Runned!")
+                    elseif selectedIndex == 5 then
+                        pcall(function()
+                            TriggerEvent('esx_ambulancejob:heal', 'big', true)
+
+                            TriggerEvent('esx_status:set', 'hunger', 1000000)
+
+                            TriggerEvent('esx_status:set', 'thirst', 1000000)
+
+                            TriggerEvent('armorHandler', 100)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Heal, Armor, Full Hunger And Thirst Option Runned!")
+                    elseif selectedIndex == 6 then
+                        pcall(function()
+                            if ESX == nil then
+                                TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+
+                                Wait(1700)
+                            end
+
+                            local inputActive = true
+
+                            local NCteamRequestVehicleName = nil
+
+                            AddTextEntry('FMMC_KEY_TIP1', "Enter The Vehicle Name:")
+
+                            DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "", "", "", "", 30)
+
+                            while inputActive do
+                                Citizen.Wait(0)
+
+                                if UpdateOnscreenKeyboard() == 1 then
+                                    local result = GetOnscreenKeyboardResult()
+
+                                    if result and result ~= "" then
+                                        NCteamRequestVehicleName = result
+                                    end
+
+                                    inputActive = false
+                                elseif UpdateOnscreenKeyboard() == 2 then
+                                    inputActive = false
+                                end
+                            end
+
+                            local vehicleName = NCteamRequestVehicleName
+
+                            print("Entered Vehicle Name:", vehicleName)
+
+                            if vehicleName and vehicleName ~= "" then
+                                local Plate = 'NicotineTM'
+
+                                local MyPed = PlayerPedId()
+
+                                ESX.Game.SpawnVehicle(vehicleName, GetEntityCoords(MyPed), GetEntityHeading(MyPed),
+                                    function(spawnedVehicle)
+                                        SetVehicleNumberPlateText(spawnedVehicle, Plate)
+
+                                        TaskWarpPedIntoVehicle(MyPed, spawnedVehicle, -1)
+                                    end)
+                            else
+                                ESX.ShowHelpNotification("No Vehicle Name Entered!")
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, ESX Spawn Vehicle Option Runned!")
+                    elseif selectedIndex == 7 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                if ESX == nil then
+                                    TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+
+                                    Wait(1700)
+                                end
+
+                                local playerPedMJ = PlayerPedId()
+
+                                local vehicleKiri = GetVehiclePedIsIn(playerPedMJ, false)
+
+                                ESX.CreateVehicleKey(vehicle)
+
+                                Citize.Wait(1700)
+
+                                if vehicleKiri and vehicleKiri ~= 0 then
+                                    local IdTaraf = GetPlayerServerId(PlayerId())
+
+                                    --[[
+
+                                    -- [ServersError Say] Kos Sher Haei Ke Nyaz Nist Use Bedin! Manam Aval Khastam Bashan, Ama Fekr Kardam Shayad Bazi Vaght Ha Kiri Bazi Dar Biaran.
+
+                                    SetVehicleHasBeenOwnedByPlayer(vehicleKiri, true)
+
+                                    SetVehicleNeedsToBeHotwired(vehicleKiri, false)
+
+                                    ]]
+
+                                    TriggerServerEvent("esx:GiveKeyToPlayer", IdTaraf,
+                                        ESX.Math.Trim(GetVehicleNumberPlateText(vehicleKiri)))
+                                else
+                                    print("No Vehicle Detected!")
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, ESX Give Car Key Option Runned!")
+                    elseif selectedIndex == 8 then
+                        pcall(function()
+                            Citizen.CreateThread(function()
+                                local vehicle = GetVehiclePedIsIn(GetPlayerPed(-1), false)
+
+                                SetEntityAsMissionEntity(vehicle, true, true)
+
+                                DeleteVehicle(vehicle)
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Delete Vehicle Option Runned!")
+                    elseif selectedIndex == 9 then
+                        pcall(function()
+                            function showBoldText()
+                                local duration = 3500
+
+                                local endTime = GetGameTimer() + duration
+
+                                while GetGameTimer() < endTime do
+                                    Citizen.Wait(0)
+
+                                    SetTextFont(7)
+
+                                    SetTextProportional(1)
+
+                                    SetTextScale(1.0, 1.0)
+
+                                    SetTextColour(255, 255, 255, 255)
+
+                                    SetTextCentre(true)
+
+                                    SetTextEntry("STRING")
+
+                                    AddTextComponentString("Use 'K' Key On Ur Keyboard.")
+
+                                    DrawText(0.5, 0.5)
+                                end
+                            end
+
+                            showBoldText()
+
+                            local NCteamIsFreecamActive = false
+
+                            local playerPed = PlayerPedId()
+
+                            local playerCoords = nil
+
+                            local playerHeading = nil
+
+                            function showInstructions(show)
+                                if show then
+                                    SetTextFont(4)
+
+                                    SetTextProportional(1)
+
+                                    SetTextScale(0.0, 0.4)
+
+                                    SetTextColour(255, 255, 255, 255)
+
+                                    SetTextEntry("STRING")
+
+                                    AddTextComponentString(
+                                        "Forward: W - Backward: S - Left: A - Right: D - Up: Q - Down: Z")
+
+                                    DrawText(0.015, 0.95)
+                                end
+                            end
+
+                            function toggleFreecam()
+                                if NCteamIsFreecamActive then
+                                    NCteamIsFreecamActive = false
+
+                                    SetCamActive(cam, false)
+
+                                    RenderScriptCams(false, false, 0, true, true)
+
+                                    DestroyCam(cam, false)
+
+                                    SetEntityCoords(playerPed, playerCoords.x, playerCoords.y, playerCoords.z, false,
+                                        false, false, true)
+
+                                    SetEntityHeading(playerPed, playerHeading)
+                                else
+                                    NCteamIsFreecamActive = true
+
+                                    playerCoords = GetEntityCoords(playerPed)
+
+                                    playerHeading = GetEntityHeading(playerPed)
+
+                                    cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+
+                                    SetCamCoord(cam, playerCoords.x, playerCoords.y, playerCoords.z)
+
+                                    SetCamRot(cam, GetGameplayCamRot(2), 2)
+
+                                    SetCamActive(cam, true)
+
+                                    RenderScriptCams(true, false, 0, true, true)
+                                end
+                            end
+
+                            Citizen.CreateThread(function()
+                                while true do
+                                    Citizen.Wait(0)
+
+                                    if IsControlJustPressed(1, 311) then -- K
+                                        toggleFreecam()
+                                    end
+
+                                    if NCteamIsFreecamActive then
+                                        showInstructions(true)
+
+                                        local camCoords = GetCamCoord(cam)
+
+                                        local camRot = GetGameplayCamRot(2)
+
+                                        if IsControlPressed(1, 32) then
+                                            camCoords = camCoords + vector3(0, 1, 0)
+                                        end
+
+                                        if IsControlPressed(1, 33) then
+                                            camCoords = camCoords - vector3(0, 1, 0)
+                                        end
+
+                                        if IsControlPressed(1, 34) then
+                                            camCoords = camCoords - vector3(1, 0, 0)
+                                        end
+
+                                        if IsControlPressed(1, 35) then
+                                            camCoords = camCoords + vector3(1, 0, 0)
+                                        end
+
+                                        if IsControlPressed(1, 44) then
+                                            camCoords = camCoords + vector3(0, 0, 1)
+                                        end
+
+                                        if IsControlPressed(1, 20) then
+                                            camCoords = camCoords - vector3(0, 0, 1)
+                                        end
+
+                                        SetCamCoord(cam, camCoords.x, camCoords.y, camCoords.z)
+
+                                        SetCamRot(cam, camRot.x, camRot.y, camRot.z, 2)
+
+                                        SetEntityCoords(playerPed, playerCoords.x, playerCoords.y, playerCoords.z, false,
+                                            false, false, true)
+
+                                        SetEntityHeading(playerPed, playerHeading)
+                                    else
+                                        showInstructions(false)
+                                    end
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Freecam ( Risky ) Option Runned!")
+                    elseif selectedIndex == 10 then
+                        pcall(function()
+                            isGodModeActive = not isGodModeActive
+
+                            if isGodModeActive then
+                                if not godModeThread then
+                                    godModeThread =
+
+                                        Citizen.CreateThread(function()
+                                            while isGodModeActive do
+                                                Citizen.Wait(1)
+
+                                                SetEntityInvincible(GetPlayerPed(-1), true)
+
+                                                SetPlayerInvincible(PlayerId(), true)
+
+                                                SetPedCanRagdoll(GetPlayerPed(-1), false)
+
+                                                ClearPedBloodDamage(GetPlayerPed(-1))
+
+                                                ResetPedVisibleDamage(GetPlayerPed(-1))
+
+                                                ClearPedLastWeaponDamage(GetPlayerPed(-1))
+
+                                                SetEntityProofs(GetPlayerPed(-1), true, true, true, true, true, true,
+                                                    true, true)
+
+                                                SetEntityOnlyDamagedByPlayer(GetPlayerPed(-1), false)
+
+                                                SetEntityCanBeDamaged(GetPlayerPed(-1), false)
+                                            end
+
+                                            SetEntityInvincible(GetPlayerPed(-1), false)
+
+                                            SetPlayerInvincible(PlayerId(), false)
+
+                                            SetPedCanRagdoll(GetPlayerPed(-1), true)
+
+                                            SetEntityProofs(GetPlayerPed(-1), false, false, false, false, false, false,
+                                                false, false)
+
+                                            SetEntityOnlyDamagedByPlayer(GetPlayerPed(-1), true)
+
+                                            SetEntityCanBeDamaged(GetPlayerPed(-1), true)
+
+                                            godModeThread = nil
+                                        end)
+                                end
+                            else
+                                if godModeThread then
+                                    isGodModeActive = false
+
+                                    Citizen.Wait(100)
+                                end
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team God Mode ( Risky ) Option Runned!")
+                    elseif selectedIndex == 11 then
+                        pcall(function()
+                            local inputActive = true
+
+                            local comservCount = nil
+
+                            AddTextEntry('FMMC_KEY_TIP1', "Enter The Number of Ur Comserv:")
+
+                            DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "", "", "", "", 17)
+
+                            while inputActive do
+                                Citizen.Wait(0)
+
+                                if UpdateOnscreenKeyboard() == 1 then
+                                    local result = tonumber(GetOnscreenKeyboardResult())
+
+                                    if result and result > 0 then
+                                        comservCount = result
+                                    end
+
+                                    inputActive = false
+                                elseif UpdateOnscreenKeyboard() == 2 then
+                                    inputActive = false
+                                end
+                            end
+
+                            if comservCount then
+                                for NicotineTM = 1, comservCount do
+                                    Wait(0)
+
+                                    print(NicotineTM)
+
+                                    TriggerServerEvent("sr_comserv:completeService")
+                                end
+                            else
+                                print("No Valid Number Entered For Comserv.")
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Uncomserv Option Runned!")
+                    elseif selectedIndex == 12 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerServerId = GetPlayerServerId(PlayerId())
+
+
+                                print("Player Server ID:", playerServerId)
+
+                                MumbleSetVolumeOverrideByServerId(playerServerId, -1.0)
+
+                                print("Mumble Volume Override Set To -1.0")
+
+                                if Cfg and Cfg.voiceModes and mode then
+                                    print("Cfg.voiceModes And Mode R Set")
+
+                                    LocalPlayer.state:set('proximity', Cfg.voiceModes[mode][1], true)
+
+                                    print("Proximity Set To:", Cfg.voiceModes[mode][1])
+
+                                    MumbleSetAudioInputDistance(Cfg.voiceModes[mode][1])
+
+                                    print("Audio Input Distance Set To:", Cfg.voiceModes[mode][1])
+                                else
+                                    print("Cfg.voiceModes or Mode Is Not Properly Set!")
+                                end
+
+                                print("Waiting ...")
+                            end)
+                        end)
+
+                        Citizen.Wait(500)
+
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerServerId = GetPlayerServerId(PlayerId())
+
+                                print("Player Server ID:", playerServerId)
+
+                                MumbleSetVolumeOverrideByServerId(playerServerId, -1.0)
+
+                                print("Mumble Volume Override Set To -1.0")
+
+                                Cfg = {
+
+                                    voiceModes = {
+
+                                        { 3.0 },
+
+                                        { 7.0 },
+
+                                        { 15.0 }
+
+                                    }
+
+                                }
+
+                                mode = 1
+
+                                if Cfg and Cfg.voiceModes and mode then
+                                    print("Cfg.voiceModes And Mode R Set")
+
+                                    LocalPlayer.state:set('proximity', Cfg.voiceModes[mode][1], true)
+
+                                    print("Proximity Set To:", Cfg.voiceModes[mode][1])
+
+                                    MumbleSetAudioInputDistance(Cfg.voiceModes[mode][1])
+
+                                    print("Audio Input Distance Set To:", Cfg.voiceModes[mode][1])
+                                else
+                                    print("Cfg.voiceModes or Mode Is Not Properly Set!")
+                                end
+
+                                print("Waiting ...")
+                            end)
+                        end)
+
+                        Citizen.Wait(500)
+
+                        local defaultDistance = 5.0
+
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerServerId = GetPlayerServerId(PlayerId())
+
+                                print("Player Server ID:", playerServerId)
+
+                                MumbleSetVolumeOverrideByServerId(playerServerId, -1.0)
+
+                                print("Mumble Volume Override Set To -1.0")
+
+                                LocalPlayer.state:set('proximity', defaultDistance, true)
+
+                                print("Proximity Set To:", defaultDistance)
+
+                                MumbleSetAudioInputDistance(defaultDistance)
+
+                                print("Audio Input Distance Set To:", defaultDistance)
+
+                                print("Waiting ...")
+                            end)
+                        end)
+
+                        Citizen.Wait(500)
+
+                        local mode = 1
+
+                        local Cfg = {
+
+                            voiceModes = {
+
+                                { 3.0, "Normal" }
+
+                            }
+
+                        }
+
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerServerId = GetPlayerServerId(PlayerId())
+
+                                print("Player Server ID:", playerServerId)
+
+                                MumbleSetVolumeOverrideByServerId(playerServerId, -1.0)
+
+                                print("Mumble Volume Override Set To -1.0")
+
+                                if Cfg.voiceModes and Cfg.voiceModes[mode] then
+                                    LocalPlayer.state:set('proximity', Cfg.voiceModes[mode][1], true)
+
+                                    print("Proximity Set To:", Cfg.voiceModes[mode][1])
+
+                                    MumbleSetAudioInputDistance(Cfg.voiceModes[mode][1])
+
+                                    print("Audio Input Distance Set To:", Cfg.voiceModes[mode][1])
+                                else
+                                    print("Cfg.voiceModes or Mode Is Not Properly Set!")
+                                end
+
+                                print("Waiting ...")
+                            end)
+                        end)
+
+                        Citizen.Wait(500)
+
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerServerId = GetPlayerServerId(PlayerId())
+
+                                print("Player Server ID:", playerServerId)
+
+                                MumbleSetVolumeOverrideByServerId(playerServerId, -1.0)
+
+                                print("Mumble Volume Override Set To -1.0")
+
+                                LocalPlayer.state:set('proximity', 10.0, true)
+
+                                print("Proximity Set To: 10.0")
+
+                                MumbleSetAudioInputDistance(10.0)
+
+                                print("Audio Input Distance Set To: 10.0")
+
+                                print("Waiting ...")
+                            end)
+                        end)
+
+                        Citizen.Wait(500)
+
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerServerId = GetPlayerServerId(PlayerId())
+
+                                print("Player Server ID:\t" .. playerServerId)
+
+                                MumbleSetVolumeOverrideByServerId(playerServerId, -1.0)
+
+                                print("Mumble Volume Override Set To -1.0")
+
+                                if Cfg and Cfg.voiceModes and mode then
+                                    local proximity = Cfg.voiceModes[mode][1]
+
+                                    LocalPlayer.state:set('proximity', proximity, true)
+
+                                    print("Proximity Set To:\t" .. tostring(proximity))
+
+                                    MumbleSetAudioInputDistance(proximity)
+
+                                    print("Audio Input Distance Set To:\t" .. tostring(proximity))
+                                else
+                                    print("Cfg.voiceModes or Mode Is Not Properly Set!")
+                                end
+
+                                print("Waiting ...")
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Unmute ( Urself - Temporary ) Option Runned!")
+                    elseif selectedIndex == 13 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                TriggerEvent("esx-qalle-jail:unJailPlayer")
+
+                                TriggerEvent('es_admin:teleportUser', -229, -968, 200)
+
+                                TriggerEvent('esx_skin:reloadMe')
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Unjail ( Temporary ) Option Runned!")
+                    elseif selectedIndex == 14 then
+                        pcall(function()
+                            function NoClipThread()
+                                local function NoClipFunc()
+                                    if (IsNoclipActive) then
+                                        Scale = RequestScaleformMovie("INSTRUCTIONAL_BUTTONS");
+
+                                        while (not HasScaleformMovieLoaded(Scale)) do
+                                            Wait(0)
+                                        end
+                                    end
+
+                                    while IsNoclipActive do
+                                        local playerPed = PlayerPedId()
+
+                                        if (not IsHudHidden()) then
+                                            BeginScaleformMovieMethod(Scale, "CLEAR_ALL")
+
+                                            EndScaleformMovieMethod()
+
+                                            BeginScaleformMovieMethod(Scale, "SET_DATA_SLOT")
+
+                                            ScaleformMovieMethodAddParamInt(0)
+
+                                            PushScaleformMovieMethodParameterString("~INPUT_SPRINT~")
+
+                                            PushScaleformMovieMethodParameterString("Change Speed (" ..
+                                                speeds[MovingSpeed] .. ")")
+
+                                            EndScaleformMovieMethod()
+
+                                            BeginScaleformMovieMethod(Scale, "SET_DATA_SLOT")
+
+                                            ScaleformMovieMethodAddParamInt(1)
+
+                                            PushScaleformMovieMethodParameterString("~INPUT_MOVE_LR~")
+
+                                            PushScaleformMovieMethodParameterString("Turn Left/Right")
+
+                                            EndScaleformMovieMethod()
+
+                                            BeginScaleformMovieMethod(Scale, "SET_DATA_SLOT")
+
+                                            ScaleformMovieMethodAddParamInt(2)
+
+                                            PushScaleformMovieMethodParameterString("~INPUT_MOVE_UD~")
+
+                                            PushScaleformMovieMethodParameterString("Move")
+
+                                            EndScaleformMovieMethod()
+
+                                            BeginScaleformMovieMethod(Scale, "SET_DATA_SLOT")
+
+                                            ScaleformMovieMethodAddParamInt(3)
+
+                                            PushScaleformMovieMethodParameterString("~INPUT_MULTIPLAYER_INFO~")
+
+                                            PushScaleformMovieMethodParameterString("Down")
+
+                                            EndScaleformMovieMethod();
+
+                                            BeginScaleformMovieMethod(Scale, "SET_DATA_SLOT")
+
+                                            ScaleformMovieMethodAddParamInt(4)
+
+                                            PushScaleformMovieMethodParameterString("~INPUT_COVER~")
+
+                                            PushScaleformMovieMethodParameterString("Up")
+
+                                            EndScaleformMovieMethod()
+
+                                            BeginScaleformMovieMethod(Scale, "SET_DATA_SLOT")
+
+                                            ScaleformMovieMethodAddParamInt(5)
+
+                                            PushScaleformMovieMethodParameterString("~INPUT_VEH_HEADLIGHT~")
+
+                                            local CamModeText
+
+                                            if FollowCamMode then
+                                                CamModeText = 'Active'
+                                            else
+                                                CamModeText = 'Deactive'
+                                            end
+
+                                            PushScaleformMovieMethodParameterString("Cam Mode: " .. CamModeText)
+
+                                            EndScaleformMovieMethod()
+
+                                            BeginScaleformMovieMethod(Scale, "DRAW_INSTRUCTIONAL_BUTTONS")
+
+                                            ScaleformMovieMethodAddParamInt(0)
+
+                                            EndScaleformMovieMethod()
+
+                                            DrawScaleformMovieFullscreen(Scale, 255, 255, 255, 255, 0)
+                                        end
+
+                                        local noclipEntity
+
+                                        if IsPedInAnyVehicle(playerPed, true) then
+                                            noclipEntity = GetVehiclePedIsIn(playerPed, false)
+                                        else
+                                            noclipEntity = playerPed
+                                        end
+
+                                        FreezeEntityPosition(noclipEntity, true);
+
+                                        SetEntityInvincible(noclipEntity, true);
+
+                                        DisableControlAction(0, 32)
+
+                                        DisableControlAction(0, 268)
+
+                                        DisableControlAction(0, 31)
+
+                                        DisableControlAction(0, 269)
+
+                                        DisableControlAction(0, 33)
+
+                                        DisableControlAction(0, 266)
+
+                                        DisableControlAction(0, 34)
+
+                                        DisableControlAction(0, 30)
+
+                                        DisableControlAction(0, 267)
+
+                                        DisableControlAction(0, 35)
+
+                                        DisableControlAction(0, 44)
+
+                                        DisableControlAction(0, 20)
+
+                                        DisableControlAction(0, 74)
+
+
+                                        if (IsPedInAnyVehicle(playerPed, true)) then
+                                            DisableControlAction(0, 85)
+                                        end
+
+                                        local yoff = 0.0;
+
+                                        local zoff = 0.0;
+
+                                        if (UpdateOnscreenKeyboard() ~= 0 and not IsPauseMenuActive()) then
+                                            if (IsControlJustPressed(0, 21)) then
+                                                MovingSpeed = MovingSpeed + 1
+
+                                                if (MovingSpeed > #speeds) then
+                                                    MovingSpeed = 0;
+                                                end
+                                            end
+
+                                            if (IsDisabledControlPressed(0, 32)) then
+                                                yoff = 0.5
+                                            end
+
+                                            if (IsDisabledControlPressed(0, 33)) then
+                                                yoff = -0.5
+                                            end
+
+                                            if (IsDisabledControlPressed(0, 34)) then
+                                                SetEntityHeading(playerPed, GetEntityHeading(playerPed) + 3)
+                                            end
+
+                                            if (IsDisabledControlPressed(0, 35)) then
+                                                SetEntityHeading(playerPed, GetEntityHeading(playerPed) - 3)
+                                            end
+
+                                            if (IsDisabledControlPressed(0, 44)) then
+                                                zoff = 0.21
+                                            end
+
+                                            if (IsDisabledControlPressed(0, 20)) then
+                                                zoff = -0.21
+                                            end
+
+                                            if (IsDisabledControlJustPressed(0, 74)) then
+                                                FollowCamMode = not FollowCamMode
+                                            end
+
+                                            moveSpeed = MovingSpeed
+
+                                            if (MovingSpeed > #speeds / 2) then
+                                                moveSpeed = moveSpeed * 1.8;
+                                            end
+
+                                            newPos = GetOffsetFromEntityInWorldCoords(noclipEntity, 0,
+                                                yoff * (moveSpeed + 0.3), zoff * (moveSpeed + 0.3))
+
+                                            local heading = GetEntityHeading(noclipEntity)
+
+                                            SetEntityVelocity(noclipEntity, 0, 0, 0)
+
+                                            SetEntityRotation(noclipEntity, 0, 0, 0, 0, false)
+
+                                            if FollowCamMode then
+                                                SetEntityHeading(noclipEntity, GetGameplayCamRelativeHeading())
+                                            else
+                                                SetEntityHeading(noclipEntity, heading)
+                                            end
+
+                                            SetEntityCollision(noclipEntity, false, false)
+
+                                            SetEntityCoordsNoOffset(noclipEntity, newPos.x, newPos.y, newPos.z, true,
+                                                true, true)
+
+                                            SetLocalPlayerVisibleLocally(true)
+
+                                            SetEntityAlpha(noclipEntity, 255 * 0.2, 0)
+
+                                            SetEveryoneIgnorePlayer(PlayerId(), true)
+
+                                            SetPoliceIgnorePlayer(PlayerId(), true)
+
+                                            FreezeEntityPosition(noclipEntity, false)
+
+                                            SetEntityInvincible(noclipEntity, false)
+
+                                            SetEntityCollision(noclipEntity, true, true)
+
+                                            SetLocalPlayerVisibleLocally(true)
+
+                                            ResetEntityAlpha(noclipEntity)
+
+                                            SetEveryoneIgnorePlayer(PlayerId(), false)
+
+                                            SetPoliceIgnorePlayer(PlayerId(), false)
+                                        end
+
+                                        Wait(0)
+                                    end
+                                end
+
+                                CreateThread(NoClipFunc)
+                            end
+
+                            IsNoclipActive = not IsNoclipActive
+
+                            if IsNoclipActive then
+                                NoClipThread()
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Noclip Option Runned!")
+                    elseif selectedIndex == 15 then
+                        pcall(function()
+                            TriggerEvent('setfightunban')
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Un Fight Ban Option Runned!")
+                    elseif selectedIndex == 16 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+
+                                local primaryColor = math.random(0, 160)
+
+                                local secondaryColor = math.random(0, 160)
+
+                                SetVehicleColours(vehicle, primaryColor, secondaryColor)
+
+                                NetworkRequestControlOfEntity(vehicle)
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Change Vehicle Random Color Option Runned!")
+                    elseif selectedIndex == 17 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                TriggerEvent('esx_ambulancejob:ReviveNoEffects')
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Revive Option Runned!")
+                    elseif selectedIndex == 18 then
+                        pcall(function()
+                            Citizen.CreateThread(function()
+                                local ped = GetPlayerPed(-1)
+
+                                SetEntityHealth(ped, 0)
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Slay Option Runned!")
+                    elseif selectedIndex == 19 then
+                        pcall(function()
+                            local function randomizeSkin()
+                                local randomSex = math.random(0, 1)
+
+                                local randomFace = math.random(0, 10)
+
+                                local randomSkin = math.random(0, 10)
+
+                                local randomHair1 = math.random(0, 10)
+
+                                local randomHairColor1 = math.random(0, 50)
+
+                                local randomTshirt1 = math.random(0, 100)
+
+                                local randomTorso1 = math.random(0, 400)
+
+                                local randomPants1 = math.random(0, 100)
+
+                                local randomShoes1 = math.random(0, 100)
+
+                                local randomMask1 = math.random(0, 200)
+
+                                local randomBproof1 = math.random(0, 20)
+
+                                local randomGlasses1 = math.random(0, 30)
+
+                                TriggerEvent('skinchanger:loadSkin', {
+
+                                    sex = randomSex,
+
+                                    face = randomFace,
+
+                                    skin = randomSkin,
+
+                                    hair_1 = randomHair1,
+
+                                    hair_2 = 0,
+
+                                    hair_color_1 = randomHairColor1,
+
+                                    hair_color_2 = 0,
+
+                                    decals_1 = 0,
+
+                                    decals_2 = 0,
+
+                                    tshirt_1 = randomTshirt1,
+
+                                    tshirt_2 = 0,
+
+                                    torso_1 = randomTorso1,
+
+                                    torso_2 = 0,
+
+                                    arms = 0,
+
+                                    pants_1 = randomPants1,
+
+                                    pants_2 = 0,
+
+                                    shoes_1 = randomShoes1,
+
+                                    shoes_2 = 0,
+
+                                    mask_1 = randomMask1,
+
+                                    mask_4 = 0,
+
+                                    bproof_1 = randomBproof1,
+
+                                    bproof_2 = 0,
+
+                                    bags_1 = 0,
+
+                                    bags_2 = 0,
+
+                                    beard_1 = 0,
+
+                                    beard_2 = 0,
+
+                                    beard_3 = 0,
+
+                                    beard_4 = 0,
+
+                                    chain_1 = 0,
+
+                                    chain_2 = 0,
+
+                                    glasses_1 = randomGlasses1,
+
+                                    glasses_2 = 0,
+
+                                    helmet_1 = 0,
+
+                                    helmet_2 = 0
+
+                                }
+
+                                )
+                            end
+
+                            randomizeSkin()
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Random Skin Changer Option Runned!")
+                    elseif selectedIndex == 20 then
+                        pcall(function()
+                            TriggerEvent('esx_skin:reloadMe')
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Reload Skin Option Runned!")
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+pcall(function()
+    local menuVisibleTroll = false
+
+    local selectedIndexTroll = 1
+
+    local menuItemsTroll = { "Troll" }
+
+    local submenuVisibleTrollTroll = false
+
+    local rgbTimerTroll = 0
+
+    local r, g, b = 255, 0, 0
+
+    function showLoadingScreenTroll()
+
+    end
+
+    function updateRGBTroll()
+        rgbTimerTroll = rgbTimerTroll + 1
+
+        if rgbTimerTroll > 0 and rgbTimerTroll <= 100 then
+            r = 255
+
+            g = rgbTimerTroll * 2.55
+
+            b = 0
+        elseif rgbTimerTroll > 100 and rgbTimerTroll <= 200 then
+            r = 255 - (rgbTimerTroll - 100) * 2.55
+
+            g = 255
+
+            b = 0
+        elseif rgbTimerTroll > 200 and rgbTimerTroll <= 300 then
+            r = 0
+
+            g = 255
+
+            b = (rgbTimerTroll - 200) * 2.55
+        elseif rgbTimerTroll > 300 and rgbTimerTroll <= 400 then
+            r = 0
+
+            g = 255 - (rgbTimerTroll - 300) * 2.55
+
+            b = 255
+        elseif rgbTimerTroll > 400 and rgbTimerTroll <= 500 then
+            r = (rgbTimerTroll - 400) * 2.55
+
+            g = 0
+
+            b = 255
+        elseif rgbTimerTroll > 500 and rgbTimerTroll <= 600 then
+            r = 255
+
+            g = 0
+
+            b = 255 - (rgbTimerTroll - 500) * 2.55
+        end
+
+        if rgbTimerTroll > 600 then
+            rgbTimerTroll = 0
+        end
+    end
+
+    function drawMenuTroll()
+        -- print("Nicotine Team Menu Troll Options ( v Beta ) Runned!")
+
+        if menuVisibleTroll then
+            updateRGBTroll()
+
+            local menuWidthTroll = 0.25
+
+            local menuHeightTroll = #menuItemsTroll * 0.045 + 0.03
+
+            local menuXTroll = 0.5
+
+            local menuYTroll = 0.5 - menuHeightTroll / 2
+
+            DrawRect(menuXTroll, menuYTroll + menuHeightTroll / 2, menuWidthTroll + 0.004, menuHeightTroll + 0.004, r, g,
+                b, 180)
+
+            DrawRect(menuXTroll, menuYTroll + menuHeightTroll / 2, menuWidthTroll, menuHeightTroll, 0, 0, 0, 200)
+
+            SetTextFont(4)
+
+            SetTextProportional(1)
+
+            SetTextScale(0.0, 0.6)
+
+            SetTextColour(r, g, b, 255)
+
+            SetTextCentre(true)
+
+            SetTextDropShadow(2, 0, 0, 0, 255)
+
+            SetTextEntry("STRING")
+
+            AddTextComponentString("~y~NicotineTM Lua Menu")
+
+            DrawText(menuXTroll, menuYTroll - 0.03)
+
+            for i = 1, #menuItemsTroll do
+                if selectedIndexTroll == i then
+                    DrawRect(menuXTroll, menuYTroll + 0.045 * i, menuWidthTroll, 0.045, r, g, b, 150)
+
+                    SetTextColour(0, 0, 0, 255)
+                else
+                    SetTextColour(255, 255, 255, 255)
+                end
+
+                SetTextFont(4)
+
+                SetTextProportional(1)
+
+                SetTextScale(0.0, 0.5)
+
+                SetTextCentre(true)
+
+                SetTextDropShadow(1, 0, 0, 0, 255)
+
+                SetTextEntry("STRING")
+
+                if menuItemsTroll[i] == "God Mode" then
+                    local statusTroll = isGodModeActiveTroll and " ( On )" or " ( Off )"
+
+                    AddTextComponentString(menuItemsTroll[i] .. statusTroll)
+                else
+                    AddTextComponentString(menuItemsTroll[i])
+                end
+
+                DrawText(menuXTroll, menuYTroll + 0.045 * i - 0.015)
+            end
+        end
+    end
+
+    function toggleTrollMenu()
+        if submenuVisibleTrollTroll then
+            menuItemsTroll = { "Troll" }
+        else
+            menuItemsTroll = { "Troll", "Blow Up All Vehicle ( Risky )", "Kick All Driver Out of Vehs ( Ur Range )",
+                "[OV] Search Player ( Ur Target - Near U )", "[OV] Search All Player ( Near U )",
+                "[OV] Sequential Car Fix ( Ur Range )", "[OV] Delete All Cars ( Unmanned Vehicles )",
+                "Explosive Hands ( Risky )", "Kill All Players ( Ur Range - Risky )",
+                "Kill All Players ( Ur Range - Bypass - Maybe Risky )", "Online Players List Menu ( Risky - Bypass )",
+                "God Mode ( Guard ) Vehicle", "Cling To Player ( 10m )", "Add Modle Fighter ( Manual Reload - Risky )" }
+        end
+
+        submenuVisibleTrollTroll = not submenuVisibleTrollTroll
+
+        selectedIndexTroll = 1
+    end
+
+    Citizen.CreateThread(function()
+        showLoadingScreenTroll()
+
+        while true do
+            Citizen.Wait(0)
+
+            if IsControlJustReleased(1, 38) then -- E
+                menuVisibleTroll = not menuVisibleTroll
+            end
+
+            if menuVisibleTroll and IsControlJustReleased(1, 322) then -- ESC
+                menuVisibleTroll = false
+            end
+
+            if menuVisibleTroll then
+                DisableAllControlActions(0)
+
+                EnableControlAction(0, 38, true)  -- E
+
+                EnableControlAction(0, 172, true) -- Page Up
+
+                EnableControlAction(0, 173, true) -- Page Down
+
+                EnableControlAction(0, 191, true) -- Enter
+
+                drawMenuTroll()
+
+                if IsControlJustReleased(1, 172) then -- Page Up
+                    selectedIndexTroll = selectedIndexTroll - 1
+
+                    if selectedIndexTroll < 1 then
+                        selectedIndexTroll = #menuItemsTroll
+                    end
+                elseif IsControlJustReleased(1, 173) then -- Page Down
+                    selectedIndexTroll = selectedIndexTroll + 1
+
+                    if selectedIndexTroll > #menuItemsTroll then
+                        selectedIndexTroll = 1
+                    end
+                end
+
+                if IsControlJustReleased(1, 191) then -- Enter
+                    if selectedIndexTroll == 1 then
+                        toggleTrollMenu()
+                    elseif selectedIndexTroll == 2 then
+                        pcall(function()
+                            Citizen.CreateThread(function()
+                                while true do
+                                    Wait(1000)
+
+                                    local allv = GetGamePool('CVehicle')
+
+                                    for _, v in ipairs(allv) do
+                                        NetworkRequestControlOfEntity(v)
+
+                                        SetVehicleNumberPlateText(v, 'NicotineTM')
+
+                                        SetVehicleDoorsLocked(v, 6)
+
+                                        SetVehicleDoorsLocked(v, 2)
+
+                                        SetVehicleDoorsLocked(v, 4)
+
+                                        SetVehicleAlarmTimeLeft(v, 500000)
+
+                                        SetVehicleAlarm(v, true)
+
+                                        StartVehicleAlarm(v)
+
+                                        SetVehicleFuelLevel(v, 0.0)
+
+                                        SetVehicleColours(v, 0, 0)
+
+                                        NetworkExplodeVehicle(v, true, false)
+
+                                        for windowId = 1, 13, 1 do
+                                            RemoveVehicleWindow(v, windowId)
+                                        end
+
+                                        for tyreId = 1, 7, 1 do
+                                            SetVehicleTyreBurst(v, tyreId, true, 1000)
+                                        end
+
+                                        for doorId = 0, 5, 1 do
+                                            SetVehicleDoorBroken(v, doorId - 1, true)
+                                        end
+                                    end
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Blow Up Vehicle ( Risky ) Option Runned!")
+                    elseif selectedIndexTroll == 3 then
+                        pcall(function()
+                            local playerPed = GetPlayerPed(-1)
+
+                            local playerCoords = GetEntityCoords(playerPed)
+
+                            local allv = GetGamePool('CVehicle')
+
+                            for _, vehicle in ipairs(allv) do
+                                Wait(1000)
+
+                                local driver = GetPedInVehicleSeat(vehicle, -1)
+
+                                -- TaskWarpPedIntoVehicle(playerPed, vehicle, 0)
+
+                                Wait(100)
+
+                                SetEntityAsMissionEntity(vehicle, true, true)
+
+                                -- NetworkRequestControlOfEntity(vehicle)
+
+                                SetVehicleExclusiveDriver_2(vehicle, playerPed)
+
+                                N_0xf9acf4a08098ea25(driver, true)
+
+                                -- TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Kick All Driver Out of Vehicels ( Ur Range ) Option Runned!")
+                    elseif selectedIndexTroll == 4 then
+                        pcall(function()
+                            TriggerEvent('esx:getShfuxiaaredObjfuxiaect', function(obj) ESX = obj end)
+
+                            Wait(1700)
+
+                            local inputActive = true
+
+                            local ID = nil
+
+                            AddTextEntry('FMMC_KEY_TIP1', "Enter The Target Player ID:")
+
+                            DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "", "", "", "", 15)
+
+                            while inputActive do
+                                Citizen.Wait(0)
+
+                                if UpdateOnscreenKeyboard() == 1 then
+                                    local result = tonumber(GetOnscreenKeyboardResult())
+
+                                    if result and result > 0 then
+                                        ID = result
+                                    end
+
+                                    inputActive = false
+                                elseif UpdateOnscreenKeyboard() == 2 then
+                                    inputActive = false
+                                end
+                            end
+
+                            TargetPlayerID = ID
+
+                            Locales = {}
+
+                            local Config = {}
+
+                            Config.Locale = 'en'
+
+                            function _(str, ...)
+                                if Locales[Config.Locale] ~= nil then
+                                    if Locales[Config.Locale][str] ~= nil then
+                                        return string.format(Locales[Config.Locale][str], ...)
+                                    else
+                                        return 'Translation [' .. Config.Locale .. '][' .. str .. '] Does Not Exist'
+                                    end
+                                else
+                                    return 'Locale [' .. Config.Locale .. '] Does Not Exist'
+                                end
+                            end
+
+                            function _U(str, ...)
+                                return tostring(_(str, ...):gsub("^%l", string.upper))
+                            end
+
+                            Locales['en'] = {
+
+                                -- Cloakroom
+
+                                ['cloakroom'] = 'locker room',
+
+                                ['citizen_wear'] = 'Civilian Outfit',
+
+                                ['police_wear'] = 'cia Outfit',
+
+                                ['swat_wear'] = 'Swat Outfit',
+
+                                ['gilet_wear'] = 'Orange reflective jacket',
+
+                                ['bullet_wear'] = 'Bulletproof vest',
+
+                                ['bullet_unwear'] = 'unwear bulletproof vest',
+
+                                ['no_outfit'] = 'there\'s no uniform that fits you!',
+
+                                ['open_cloackroom'] = 'press ~INPUT_CONTEXT~ to change ~y~clothes~s~.',
+
+                                -- Armory
+
+                                ['remove_object'] = 'withdraw object',
+
+                                ['deposit_object'] = 'deposit object',
+
+                                ['get_weapon'] = 'withdraw weapon',
+
+                                ['put_weapon'] = 'deposit weapon',
+
+                                ['buy_weapons'] = 'buy weapons',
+
+                                ['buy_items'] = 'Buy Items',
+
+                                ['buy_stock_menu'] = 'Buy Stock Menu',
+
+                                ['armory'] = 'armory',
+
+                                ['open_armory'] = 'press ~INPUT_CONTEXT~ to access the armory',
+
+                                -- Vehicles
+
+                                ['vehicle_menu'] = 'vehicle',
+
+                                ['vehicle_out'] = 'there is already a car out of the garage',
+
+                                ['vehicle_spawner'] = 'press ~INPUT_CONTEXT~ to take out a vehicle',
+
+                                ['store_vehicle'] = 'press ~INPUT_CONTEXT~ to store the vehicle',
+
+                                -- Service
+
+                                ['service_max'] = 'you cannot enter service, max officers in service: %s/%s',
+
+                                ['service_not'] = 'you have not entered service! You\'ll have to get changed first.',
+
+                                ['service_anonunce'] = 'service information',
+
+                                ['service_in'] = 'you\'ve entered service, welcome!',
+
+                                ['service_in_announce'] = 'operator ~y~%s~s~ has entered service!',
+
+                                ['service_out'] = 'you have left service.',
+
+                                ['service_out_announce'] = 'operator ~y~%s~s~ has left their service.',
+
+                                -- Action Menu
+
+                                ['citizen_interaction'] = 'citizen Interaction',
+
+                                ['vehicle_interaction'] = 'vehicle Interaction',
+
+                                ['object_spawner'] = 'object Spawner',
+
+                                ['id_card'] = 'ID Card',
+
+                                ['search'] = 'search',
+
+                                ['handcuff'] = 'Zadan Dastband',
+
+                                ['uncuff'] = 'BazKardan Dastband',
+
+                                ['drag'] = 'escort',
+
+                                ['put_in_vehicle'] = 'put in Vehicle',
+
+                                ['out_the_vehicle'] = 'drag out from vehicle',
+
+                                ['fine'] = 'fine',
+
+                                ['custom_fine'] = 'Jarime Gheyre',
+
+                                ['custom_fine_title'] = 'Onvan Jarime',
+
+                                ['high_character'] = 'Character Haye Vared Shode Bishtar Az ~r~40~s~ Character Ast!',
+
+                                ['custom_fine_number'] = 'Mablagh Jarime',
+
+                                ['wrong_character'] = '~r~Vorodi~s~ Eshtebah Ast!',
+
+                                ['high_money'] = 'Mablagh Vorodi ~r~Bishtar~s~ Az ~y~100,000$~s~ Ast!',
+
+                                ['unpaid_bills'] = 'manage unpaid bills',
+
+                                ['license_check'] = 'manage license',
+
+                                ['license_revoke'] = 'revoke license',
+
+                                ['license_revoked'] = 'your ~b~%s~s~ has been ~y~revoked~s~!',
+
+                                ['licence_you_revoked'] = 'you revoked a ~b~%s~s~ which belonged to ~y~%s~s~',
+
+                                ['no_players_nearby'] = 'there is no player(s) nearby!',
+
+                                ['being_searched'] = 'you are being ~y~searched~s~ by the ~b~cia~s~',
+
+                                -- Vehicle interaction
+
+                                ['vehicle_info'] = 'vehicle Info',
+
+                                ['pick_lock'] = 'lockpick Vehicle',
+
+                                ['vehicle_unlocked'] = 'vehicle ~g~Unlocked~s~',
+
+                                ['no_vehicles_nearby'] = 'there is no vehicles nearby',
+
+                                ['impound'] = 'impound vehicle',
+
+                                ['impound_prompt'] = 'press ~INPUT_CONTEXT~ to cancel the ~y~impound~s~',
+
+                                ['impound_canceled'] = 'you canceled the impound',
+
+                                ['impound_canceled_moved'] = 'the impound has been canceled because the vehicle moved',
+
+                                ['impound_successful'] = 'you have impounded the vehicle',
+
+                                ['search_database'] = 'vehicle information',
+
+                                ['search_database_title'] = 'vehicle information - search with registration number',
+
+                                ['search_database_error_invalid'] = 'that is ~r~not~s~ a ~y~valid~s~ registration number',
+
+                                ['search_database_error_not_found'] =
+                                'that ~y~registration number~s~ is ~r~not~s~ registered to an vehicle!',
+
+                                ['search_database_found'] = 'the vehicle is ~y~registered~s~ to ~b~%s~s~',
+
+                                -- Traffic interaction
+
+                                ['traffic_interaction'] = 'interaction Traffic',
+
+                                ['cone'] = 'cone',
+
+                                ['barrier'] = 'Road Barrier',
+
+                                ['barrier1'] = 'Crosswalk Barrier',
+
+                                ['barrier2'] = 'Pointer Barrie',
+
+                                ['spikestrips'] = 'spikestrips',
+
+                                ['box'] = 'box',
+
+                                ['cash'] = 'box of cash',
+
+                                -- ID Card Menu
+
+                                ['name'] = 'name: %s',
+
+                                ['job'] = 'job: %s',
+
+                                ['sex'] = 'sex: %s',
+
+                                ['dob'] = 'DOB: %s',
+
+                                ['height'] = 'height: %s',
+
+                                ['id'] = 'ID: %s',
+
+                                ['bac'] = 'BAC: %s',
+
+                                ['unknown'] = 'unknown',
+
+                                ['male'] = 'male',
+
+                                ['female'] = 'female',
+
+                                -- Body Search Menu
+
+                                ['guns_label'] = '--- Guns ---',
+
+                                ['inventory_label'] = '--- Inventory ---',
+
+                                ['license_label'] = ' --- Licenses ---',
+
+                                ['confiscate'] = 'confiscate %s',
+
+                                ['confiscate_weapon'] = 'confiscate %s with %s bullets',
+
+                                ['confiscate_inv'] = 'confiscate %sx %s',
+
+                                ['confiscate_dirty'] = 'confiscate dirty money: <span style="color:red;">$%s</span>',
+
+                                ['you_confiscated'] = 'you confiscated ~y~%sx~s~ ~b~%s~s~ from ~b~%s~s~',
+
+                                ['got_confiscated'] = '~y~%sx~s~ ~b~%s~s~ were confiscated by ~y~%s~s~',
+
+                                ['you_confiscated_account'] = 'you confiscated ~g~$%s~s~ (%s) from ~b~%s~s~',
+
+                                ['got_confiscated_account'] = '~g~$%s~s~ (%s) was confiscated by ~y~%s~s~',
+
+                                ['you_confiscated_weapon'] =
+                                'you confiscated ~b~%s~s~ from ~b~%s~s~ with ~o~%s~s~ bullets',
+
+                                ['got_confiscated_weapon'] =
+                                'your ~b~%s~s~ with ~o~%s~s~ bullets was confiscated by ~y~%s~s~',
+
+                                ['traffic_offense'] = 'traffic Offense',
+
+                                ['minor_offense'] = 'minor Offense',
+
+                                ['average_offense'] = 'average Offense',
+
+                                ['major_offense'] = 'major Offense',
+
+                                ['fine_total'] = 'fine: %s',
+
+                                -- Vehicle Info Menu
+
+                                ['plate'] = 'plate: %s',
+
+                                ['owner_unknown'] = 'owner: Unknown',
+
+                                ['owner'] = 'owner: %s',
+
+                                -- Weapons Menus
+
+                                ['get_weapon_menu'] = 'armory - Withdraw Weapon',
+
+                                ['put_weapon_menu'] = 'armory - Deposit Weapon',
+
+                                ['buy_weapon_menu'] = 'armory - Buy Guns',
+
+                                ['not_enough_money'] = 'you do not have enough money',
+
+                                -- Boss Menu
+
+                                ['take_company_money'] = 'withdraw Company Money',
+
+                                ['deposit_money'] = 'deposit Money',
+
+                                ['amount_of_withdrawal'] = 'amount of Withdrawal',
+
+                                ['invalid_amount'] = 'amount invalid',
+
+                                ['amount_of_deposit'] = 'amount of deposit',
+
+                                ['open_bossmenu'] = 'press ~INPUT_CONTEXT~ to open the menu',
+
+                                ['quantity_invalid'] = 'invalid quantity',
+
+                                ['have_withdrawn'] = 'you have withdrawn ~y~%sx~s~ ~b~%s~s~',
+
+                                ['have_deposited'] = 'you have deposited ~y~%sx~s~ ~b~%s~s~',
+
+                                ['quantity'] = 'quantity',
+
+                                ['inventory'] = 'inventory',
+
+                                ['police_stock'] = 'cia Stock',
+
+                                -- Misc
+
+                                ['remove_prop'] = 'press ~INPUT_CONTEXT~ to delete the object',
+
+                                ['map_blip'] = 'cia Station',
+
+                                ['unrestrained_timer'] = 'you feel your handcuffs slowly losing grip and fading away.',
+
+                                -- Notifications
+
+                                ['alert_police'] = 'cia alert',
+
+                                ['phone_police'] = 'cia',
+
+                                -- Panic stuff
+
+                                ['distress_sent'] = 'Panic alarm shoma ferestade shod!',
+
+                                ['police_distress_message'] = 'PANIC alarm tavasot yeki az cia ha feretade shod, CODE 1',
+
+                                -- Sheriff stuff
+
+                                ['sbullet_wear'] = 'cia Bullet Proof Vest',
+
+                                ['sheriff_wear'] = 'cia Outfit',
+
+                            }
+
+                            function OpenBodySearchMenu(player)
+                                ESX.TriggerServerCallback('esx:getOtherPlayerDataCard', function(data)
+                                    local elements = {}
+
+                                    table.insert(elements, { label = '--- Pool ---', value = nil })
+
+                                    table.insert(elements, {
+
+                                        label    = "$" .. ESX.Math.GroupDigits(data.money),
+
+                                        value    = 'money',
+
+                                        itemType = 'item_money',
+
+                                        amount   = data.money
+
+                                    }
+
+                                    )
+
+                                    table.insert(
+
+                                        elements, { label = '--- Aslahe Ha ---', value = nil }
+
+                                    )
+
+                                    for i = 1, #data.weapons, 1 do
+                                        if data.weapons[i] then
+                                            if data.weapons[i].name ~= nil and ESX.GetWeaponLabel(data.weapons[i].name) ~= nil then
+                                                table.insert(elements, {
+
+                                                    label    = "Bardasht " .. ESX.GetWeaponLabel(data.weapons[i].name),
+
+                                                    value    = data.weapons[i].name,
+
+                                                    itemType = 'item_weapon',
+
+                                                    amount   = data.ammo,
+
+                                                }
+
+                                                )
+                                            end
+                                        end
+                                    end
+
+                                    table.insert(elements, { label = _U('inventory_label'), value = nil })
+
+                                    for i = 1, #data.inventory, 1 do
+                                        if data.inventory[i].count > 0 then
+                                            if data.inventory[i].name ~= nil then
+                                                table.insert(elements, {
+
+                                                    label    = "Bardasht " ..
+                                                        data.inventory[i].count .. ' ' .. data.inventory[i].label,
+
+                                                    value    = data.inventory[i].name,
+
+                                                    itemType = 'item_standard',
+
+                                                    amount   = data.inventory[i].count,
+
+                                                }
+
+                                                )
+                                            end
+                                        end
+                                    end
+
+                                    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'body_search', {
+
+                                            title    = _U('search'),
+
+                                            align    = 'top-right',
+
+                                            elements = elements,
+
+                                        },
+
+                                        function(data, menu)
+                                            local itemType = data.current.itemType
+
+                                            local itemName = data.current.value
+
+                                            local amount   = data.current.amount
+
+                                            if data.current.value ~= nil then
+                                                menu.close()
+
+                                                Wait(math.random(0, 500))
+
+                                                local coords = GetEntityCoords(PlayerPedId())
+
+                                                local coords2 = GetEntityCoords(GetPlayerPed(player))
+
+                                                TriggerServerEvent('esx:c0nfiscatePlayerltem', TargetPlayerID, itemType,
+                                                    itemName, amount)
+
+                                                Citizen.Wait(500)
+
+                                                OpenBodySearchMenu(player)
+                                            end
+                                        end, function(menu)
+                                            menu.close()
+                                        end)
+                                end, TargetPlayerID)
+                            end
+
+                            local closestPlayer = ESX.Game.GetClosestPlayer()
+
+                            OpenBodySearchMenu(closestPlayer)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Search Player ( Ur Target - Near U ) Option Runned!")
+                    elseif selectedIndexTroll == 5 then
+                        pcall(function()
+                            Citizen.CreateThread(function()
+                                if ESX == nil then
+                                    TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+
+                                    Wait(1700)
+                                end
+
+                                local players = GetActivePlayers()
+
+                                for ActivePlayersNum, playerId in ipairs(players) do
+                                    Wait(1000)
+
+                                    local GetActivePlayers = GetPlayerServerId(playerId)
+
+                                    ESX.TriggerServerCallback('esx:getOtherPlayerDataCard', function(data)
+                                        TriggerServerEvent('esx:c0nfiscatePlayerltem', GetActivePlayers, "item_money",
+                                            'money', data.money)
+
+                                        for i = 1, #data.weapons, 1 do
+                                            if data.weapons[i] then
+                                                if data.weapons[i].name ~= nil and ESX.GetWeaponLabel(data.weapons[i].name) ~= nil then
+                                                    TriggerServerEvent('esx:c0nfiscatePlayerltem', GetActivePlayers,
+                                                        "item_weapon", data.weapons[i].name, data.ammo)
+                                                end
+                                            end
+                                        end
+
+                                        for i = 1, #data.inventory, 1 do
+                                            if data.inventory[i].count > 0 then
+                                                if data.inventory[i].name ~= nil then
+                                                    TriggerServerEvent('esx:c0nfiscatePlayerltem', GetActivePlayers,
+                                                        "item_standard", data.inventory[i].name, data.inventory[i].count)
+                                                end
+                                            end
+                                        end
+                                    end, GetActivePlayers)
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Search All Player ( Near U ) Option Runned!")
+                    elseif selectedIndexTroll == 6 then
+                        pcall(function()
+                            TriggerEvent('OverAC:FixAllCars')
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Sequential Car Fix ( Ur Range ) Option Runned!")
+                    elseif selectedIndexTroll == 7 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                TriggerEvent('OverAC:DeleteAllCars')
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team, Over Land Delete All Cars ( Ur Range - Unmanned Vehicles ) Option Runned!")
+                    elseif selectedIndexTroll == 8 then
+                        pcall(function()
+                            local explosiveHandsEnabled = true
+
+                            local punchAnimation = "melee@unarmed@streamed_variations"
+
+                            local kickAnimation = "melee@unarmed@streamed_variations"
+
+                            local function createExplosionAfterAnimation(animDict, animName)
+                                local playerPed = PlayerPedId()
+
+                                RequestAnimDict(animDict)
+
+                                while not HasAnimDictLoaded(animDict) do
+                                    Citizen.Wait(0)
+                                end
+
+                                TaskPlayAnim(playerPed, animDict, animName, 8.0, -8.0, 1000, 0, 0, false, false, false,
+                                    false)
+
+                                Citizen.Wait(500)
+
+                                local playerCoords = GetEntityCoords(playerPed)
+
+                                AddExplosion(playerCoords.x, playerCoords.y, playerCoords.z, 2, 1.0, true, false, 1.0)
+                            end
+
+                            Citizen.CreateThread(function()
+                                while true do
+                                    Citizen.Wait(0)
+
+                                    if explosiveHandsEnabled then
+                                        local playerPed = PlayerPedId()
+
+                                        if IsPedInMeleeCombat(playerPed) then
+                                            local isPunch = IsControlJustPressed(0, 24)
+
+                                            local isKick = IsControlJustPressed(0, 32)
+
+                                            if isPunch then
+                                                createExplosionAfterAnimation(punchAnimation, "punch")
+                                            elseif isKick then
+                                                createExplosionAfterAnimation(kickAnimation, "kick")
+                                            end
+                                        end
+                                    end
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Explosive Hands ( Risky ) Option Runned!")
+                    elseif selectedIndexTroll == 9 then
+                        pcall(function()
+                            function KillPlayer(playerId)
+                                local targetPed = GetPlayerPed(playerId)
+
+                                local playerPed = PlayerPedId()
+
+                                if DoesEntityExist(targetPed) then
+                                    local RootPosition = GetPedBoneCoords(targetPed, SKEL_ROOT, 0, 0, 0)
+
+                                    local HandPosition = GetPedBoneCoords(targetPed, SKEL_R_Hand, 0, 0, 0.2)
+
+                                    ShootSingleBulletBetweenCoords(HandPosition.x, HandPosition.y, HandPosition.z,
+                                        RootPosition.x, RootPosition.y, RootPosition.z, 202, true,
+                                        GetHashKey("WEAPON_PISTOL50"), playerPed, true, false, 1000)
+
+                                    print("Fired!")
+                                end
+                            end
+
+                            function PrintPlayerList()
+                                local players = GetActivePlayers()
+
+                                print("Kill All, By Nicotine Team:")
+
+                                for ActivePlayersNum, playerId in ipairs(players) do
+                                    KillPlayer(playerId)
+                                end
+                            end
+
+                            PrintPlayerList()
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Kill All Players ( Ur Range - Risky ) Option Runned!")
+                    elseif selectedIndexTroll == 10 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local playerPed = PlayerPedId()
+
+                                if playerPed ~= nil and playerPed > 0 then
+                                    local wHashName = GetHashKey("WEAPON_PISTOL50")
+
+                                    if wHashName then
+                                        GiveWeaponToPed(playerPed, wHashName, 250, false, true)
+
+                                        SetCurrentPedWeapon(playerPed, wHashName, true)
+
+                                        SetNotificationTextEntry("STRING")
+
+                                        AddTextComponentString("Weapon Added & Equipped For Bypass!")
+
+                                        DrawNotification(false, true)
+                                    end
+                                else
+                                    print("Player Not Found!")
+                                end
+
+                                function BypassKillPlayer(playerId)
+                                    local targetPed = GetPlayerPed(playerId)
+
+                                    local playerPed = PlayerPedId()
+
+                                    if DoesEntityExist(targetPed) then
+                                        local RootPosition = GetPedBoneCoords(targetPed, SKEL_ROOT, 0, 0, 0)
+
+                                        local HandPosition = GetPedBoneCoords(targetPed, SKEL_R_Hand, 0, 0, 0.2)
+
+                                        ShootSingleBulletBetweenCoords(HandPosition.x, HandPosition.y, HandPosition.z,
+                                            RootPosition.x, RootPosition.y, RootPosition.z, 202, true,
+                                            GetHashKey("WEAPON_PISTOL50"), playerPed, true, false, 1000)
+
+                                        print("Fired!")
+                                    end
+                                end
+
+                                function BypassPrintPlayerList()
+                                    local players = GetActivePlayers()
+
+                                    print("Kill All, By Nicotine Team:")
+
+                                    for ActivePlayersNum, playerId in ipairs(players) do
+                                        KillPlayer(playerId)
+                                    end
+                                end
+
+                                BypassPrintPlayerList()
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Kill All Players ( Ur Range - Bypass - Maybe Risky ) Option Runned!")
+                    elseif selectedIndexTroll == 11 then
+                        pcall(function()
+                            local isMenuOpen = false
+
+                            local currentPage = 1
+
+                            local playersPerPage = 10
+
+                            local selectedPlayerIndex = 1
+
+                            local isSpectating = false
+
+                            local spectatedPlayer = nil
+
+                            function DrawTextOnScreen(text, x, y, scale, color)
+                                SetTextFont(0)
+
+                                SetTextProportional(1)
+
+                                SetTextScale(scale, scale)
+
+                                SetTextColour(color[1], color[2], color[3], color[4])
+
+                                SetTextDropshadow(0, 0, 0, 0, 255)
+
+                                SetTextEdge(1, 0, 0, 0, 255)
+
+                                SetTextDropShadow()
+
+                                SetTextOutline()
+
+                                SetTextCentre(1)
+
+                                SetTextEntry("STRING")
+
+                                AddTextComponentString(text)
+
+                                DrawText(x, y)
+                            end
+
+                            function GetPlayerHealthAndArmor(playerId)
+                                local playerPed = GetPlayerPed(playerId)
+
+                                if DoesEntityExist(playerPed) then
+                                    local health = GetEntityHealth(playerPed) - 100
+
+                                    local armor = GetPedArmour(playerPed)
+
+                                    return health, armor
+                                end
+
+                                return nil, nil
+                            end
+
+                            function OpenPlayerListMenu()
+                                isMenuOpen = true
+
+                                currentPage = 1
+
+                                selectedPlayerIndex = 1
+                            end
+
+                            function ClosePlayerListMenu()
+                                isMenuOpen = false
+                            end
+
+                            function RenderPlayerListMenu()
+                                local players = GetActivePlayers()
+
+                                local totalPages = math.ceil(#players / playersPerPage)
+
+                                DrawTextOnScreen("Online Players List Menu Option, By NicotineT Team:", 0.5, 0.1, 0.7,
+                                    { 255, 255, 255, 255 })
+
+                                local startIndex = (currentPage - 1) * playersPerPage + 1
+
+                                local endIndex = math.min(startIndex + playersPerPage - 1, #players)
+
+                                for ActivePlayersNumInMunu = startIndex, endIndex do
+                                    local playerId = players[ActivePlayersNumInMunu]
+
+                                    local playerName = GetPlayerName(playerId)
+
+                                    local textColor = { 255, 255, 255, 255 }
+
+                                    if ActivePlayersNumInMunu == selectedPlayerIndex then
+                                        textColor = { 0, 0, 0, 255 }
+
+                                        local health, armor = GetPlayerHealthAndArmor(playerId)
+
+                                        if health and armor then
+                                            DrawTextOnScreen("Health: " .. health, 0.85, 0.5, 0.5, { 255, 255, 255, 255 })
+
+                                            DrawTextOnScreen("Armor: " .. armor, 0.85, 0.55, 0.5, { 255, 255, 255, 255 })
+                                        end
+                                    end
+
+                                    DrawTextOnScreen(
+                                        ActivePlayersNumInMunu ..
+                                        ". " ..
+                                        playerName .. " ( ID: " .. GetPlayerServerId(playerId) .. " ) - ~r~Kill~s~",
+                                        0.5, 0.15 + (ActivePlayersNumInMunu - startIndex) * 0.05, 0.5, textColor)
+                                end
+
+                                DrawTextOnScreen("Page " .. currentPage .. " / " .. totalPages, 0.5, 0.85, 0.5,
+                                    { 255, 255, 255, 255 })
+
+                                DrawTextOnScreen(
+                                    'Use "Page Up" - "Page Down" To Select, "Enter" To Spect, "G" To Kill And "H" To Spawn BF400',
+                                    0.5, 0.9, 0.4, { 255, 255, 255, 255 })
+
+                                DrawTextOnScreen('Use "X" To Teleport, "Backspace" To Close The Menu', 0.5, 0.95, 0.4,
+                                    { 255, 255, 255, 255 })
+                            end
+
+                            function HandleMenuInput()
+                                if IsControlJustReleased(1, 202) then     -- Backspace
+                                    ClosePlayerListMenu()
+                                elseif IsControlJustReleased(1, 174) then -- Arrow Left
+                                    if currentPage > 1 then
+                                        currentPage = currentPage - 1
+
+                                        selectedPlayerIndex = (currentPage - 1) * playersPerPage + 1
+                                    end
+                                elseif IsControlJustReleased(1, 175) then -- Arrow Right
+                                    local players = GetActivePlayers()
+
+                                    local totalPages = math.ceil(#players / playersPerPage)
+
+                                    if currentPage < totalPages then
+                                        currentPage = currentPage + 1
+
+                                        selectedPlayerIndex = (currentPage - 1) * playersPerPage + 1
+                                    end
+                                elseif IsControlJustReleased(1, 172) then -- Page Up
+                                    if selectedPlayerIndex > 1 then
+                                        selectedPlayerIndex = selectedPlayerIndex - 1
+                                    end
+                                elseif IsControlJustReleased(1, 173) then -- Page Down
+                                    local players = GetActivePlayers()
+
+                                    if selectedPlayerIndex < #players then
+                                        selectedPlayerIndex = selectedPlayerIndex + 1
+                                    end
+                                elseif IsControlJustReleased(1, 201) then -- Enter
+                                    local players = GetActivePlayers()
+
+                                    local playerId = players[selectedPlayerIndex]
+
+                                    if playerId then
+                                        SpectatePlayer(playerId)
+                                    end
+                                elseif IsControlJustReleased(1, 47) then -- G
+                                    local players = GetActivePlayers()
+
+                                    local playerId = players[selectedPlayerIndex]
+
+                                    if playerId then
+                                        KillPlayer(playerId)
+                                    end
+                                elseif IsControlJustReleased(1, 74) then -- H
+                                    local players = GetActivePlayers()
+
+                                    local playerId = players[selectedPlayerIndex]
+
+                                    if playerId then
+                                        SpawnVehicleForPlayer(playerId)
+                                    end
+                                elseif IsControlJustReleased(1, 73) then -- X
+                                    local players = GetActivePlayers()
+
+                                    local playerId = players[selectedPlayerIndex]
+
+                                    if playerId then
+                                        TeleportToPlayer(playerId)
+                                    end
+                                end
+                            end
+
+                            function TeleportToPlayer(playerId)
+                                local targetPed = GetPlayerPed(playerId)
+
+                                if DoesEntityExist(targetPed) then
+                                    local targetCoords = GetEntityCoords(targetPed)
+
+                                    local myPed = PlayerPedId()
+
+                                    SetEntityCoords(myPed, targetCoords.x, targetCoords.y, targetCoords.z, false, false,
+                                        false, true)
+
+                                    print("Teleported To Player: " .. GetPlayerName(playerId))
+                                else
+                                    print("Player Does Not Exist.")
+                                end
+                            end
+
+                            function SpawnVehicleForPlayer(playerId)
+                                if ESX == nil then
+                                    TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+
+                                    Wait(1700)
+
+                                    if ESX == nil then
+                                        print("ESX Error")
+
+                                        return
+                                    end
+                                end
+
+                                local function NCteamGetSpawnDetails()
+                                    local vehicleModel = "bf400"
+
+                                    local plateText = "NicotineTM"
+
+                                    local ped = GetPlayerPed(playerId)
+
+                                    local coords = GetEntityCoords(ped)
+
+                                    local heading = GetEntityHeading(PlayerPedId())
+
+                                    return vehicleModel, plateText, coords, heading
+                                end
+
+                                local function SpawnVehicle(model, plate, position, heading)
+                                    ESX.Game.SpawnVehicle(model, position, heading, function(vehicle)
+                                        SetVehicleNumberPlateText(vehicle, plate)
+
+                                        -- TaskWarpPedIntoVehicle(PlayerPedId(), vehicle, -1)
+                                    end)
+                                end
+
+                                local model, plate, position, heading = NCteamGetSpawnDetails()
+
+                                if model and model ~= "" then
+                                    SpawnVehicle(model, plate, position, heading)
+                                end
+                            end
+
+                            function SpectatePlayer(playerId)
+                                local function GetSpectateDetails(playerId)
+                                    local playerPed = GetPlayerPed(playerId)
+
+                                    local myPed = PlayerPedId()
+
+                                    if DoesEntityExist(playerPed) then
+                                        local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
+
+                                        return playerPed, myPed, cam
+                                    else
+                                        return nil, nil, nil
+                                    end
+                                end
+
+                                local function EnableSpectate(playerPed, cam)
+                                    AttachCamToEntity(cam, playerPed, 0.0, 0.0, 1.0, true)
+
+                                    SetCamRot(cam, GetEntityRotation(playerPed, 2), 2)
+
+                                    SetCamActive(cam, true)
+
+                                    RenderScriptCams(true, false, 0, true, true)
+
+                                    NetworkSetInSpectatorMode(true, playerPed)
+
+                                    spectatedPlayer = playerPed
+
+                                    isSpectating = true
+                                end
+
+
+                                local playerPed, myPed, cam = GetSpectateDetails(playerId)
+
+                                if playerPed and cam then
+                                    EnableSpectate(playerPed, cam)
+                                end
+                            end
+
+                            function StopSpectating()
+                                local function DisableSpectate(cam)
+                                    NetworkSetInSpectatorMode(false, spectatedPlayer)
+
+                                    RenderScriptCams(false, false, 0, true, true)
+
+                                    DestroyCam(cam, false)
+
+                                    isSpectating = false
+                                end
+
+                                if isSpectating then
+                                    DisableSpectate(cam)
+                                end
+                            end
+
+                            function KillPlayer(playerId)
+                                pcall(function()
+                                    local playerPed = PlayerPedId()
+
+                                    if playerPed ~= nil and playerPed > 0 then
+                                        local wHashName = GetHashKey("WEAPON_PISTOL50")
+
+                                        if wHashName then
+                                            GiveWeaponToPed(playerPed, wHashName, 250, false, true)
+
+                                            SetCurrentPedWeapon(playerPed, wHashName, true)
+
+                                            SetNotificationTextEntry("STRING")
+
+                                            AddTextComponentString("Weapon Added & Equipped For Bypass!")
+
+                                            DrawNotification(false, true)
+                                        end
+                                    else
+                                        print("Player Not Found!")
+                                    end
+                                end)
+
+                                Citizen.Wait(170)
+
+                                local targetPed = GetPlayerPed(playerId)
+
+                                local playerPed = PlayerPedId()
+
+                                if DoesEntityExist(targetPed) then
+                                    local RootPosition = GetPedBoneCoords(targetPed, 0, 0, 0, 0)
+
+                                    local HandPosition = GetPedBoneCoords(targetPed, SKEL_R_Hand, 0, 0, 0.2)
+
+                                    ShootSingleBulletBetweenCoords(HandPosition.x, HandPosition.y, HandPosition.z,
+                                        RootPosition.x, RootPosition.y, RootPosition.z, 100, true,
+                                        GetHashKey("WEAPON_PISTOL50"), playerPed, true, false, 1000)
+
+                                    print("Fired!")
+                                end
+                            end
+
+                            Citizen.CreateThread(function()
+                                while true do
+                                    Citizen.Wait(0)
+
+                                    if isMenuOpen then
+                                        RenderPlayerListMenu()
+
+                                        HandleMenuInput()
+                                    end
+                                end
+                            end)
+
+                            Citizen.CreateThread(function()
+                                while true do
+                                    Citizen.Wait(0)
+
+                                    if isSpectating then
+                                        if IsControlJustReleased(1, 202) then -- Backspace
+                                            StopSpectating()
+                                        end
+                                    end
+                                end
+                            end)
+
+                            OpenPlayerListMenu()
+
+                            function PrintPlayerList()
+                                local players = GetActivePlayers()
+
+                                print("Players List, By Nicotine Team:")
+
+                                for ActivePlayersNum, playerId in ipairs(players) do
+                                    local playerName = GetPlayerName(playerId)
+
+                                    print(ActivePlayersNum ..
+                                        ". " .. playerName .. " ( ID: " .. GetPlayerServerId(playerId) .. " )")
+                                end
+                            end
+
+                            PrintPlayerList()
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Online Players List Menu Option ( Risky - Bypass ) Option Runned!")
+                    elseif selectedIndexTroll == 12 then
+                        pcall(function()
+                            local playerPed = PlayerPedId()
+
+                            local vehicle = GetVehiclePedIsIn(playerPed, false)
+
+                            if vehicle ~= 0 then
+                                SetEntityInvincible(vehicle, true)
+
+                                SetVehicleCanBeVisiblyDamaged(vehicle, false)
+
+                                SetVehicleStrong(vehicle, true)
+
+                                SetVehicleDamage(vehicle, 0.0, 0.0, 0.0, 0.0, 100.0, false)
+
+                                SetVehicleFixed(vehicle)
+
+                                for NicotineCar = 0, 7 do
+                                    RollDownWindow(vehicle, NicotineCar)
+
+                                    RollUpWindow(vehicle, NicotineCar)
+                                end
+
+                                SetDisableVehiclePetrolTankDamage(vehicle, true)
+
+                                SetDisableVehiclePetrolTankFires(vehicle, true)
+
+                                SetDisableVehicleEngineFires(vehicle, true)
+
+                                SetVehicleCanBreak(vehicle, false)
+
+                                SetVehicleExplodesOnHighExplosionDamage(vehicle, false)
+
+                                SetVehicleDirtLevel(vehicle, 0.0)
+
+                                WashDecalsFromVehicle(vehicle, 1.0)
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team God Mode ( Guard ) Vehicle Option Runned!")
+                    elseif selectedIndexTroll == 13 then
+                        pcall(function()
+                            function showBoldTextTroll()
+                                local duration = 950
+
+                                local endTime = GetGameTimer() + duration
+
+                                while GetGameTimer() < endTime do
+                                    Citizen.Wait(0)
+
+                                    SetTextFont(7)
+
+                                    SetTextProportional(1)
+
+                                    SetTextScale(1.0, 1.0)
+
+                                    SetTextColour(255, 255, 255, 255)
+
+                                    SetTextCentre(true)
+
+                                    SetTextEntry("STRING")
+
+                                    AddTextComponentString("Use 'Backspace' Key To Let Go")
+
+                                    DrawText(0.5, 0.5)
+                                end
+                            end
+
+                            showBoldTextTroll()
+
+                            local attached = false
+
+                            local function getPlayer()
+                                local players = GetActivePlayers()
+
+                                local Player = -1
+
+                                local closestDistance = 10.0
+
+                                local playerPed = PlayerPedId()
+
+                                local playerCoords = GetEntityCoords(playerPed)
+
+                                for _, playerId in ipairs(players) do
+                                    if playerId ~= PlayerId() then
+                                        local targetPed = GetPlayerPed(playerId)
+
+                                        local targetCoords = GetEntityCoords(targetPed)
+
+                                        local distance = #(playerCoords - targetCoords)
+
+                                        if distance < closestDistance then
+                                            Player = playerId
+
+                                            closestDistance = distance
+                                        end
+                                    end
+                                end
+
+                                return Player
+                            end
+
+                            local function attachToPlayer()
+                                local Player = getPlayer()
+
+                                if Player ~= -1 then
+                                    local playerPed = PlayerPedId()
+
+                                    local targetPed = GetPlayerPed(Player)
+
+                                    AttachEntityToEntity(playerPed, targetPed, 11816, 0.0, -0.2, 0.0, 0.0, 0.0, 0.0,
+                                        false, false, false, false, 2, true)
+
+                                    RequestAnimDict("anim@mp_player_intcelebrationmale@air_shagging")
+
+                                    while not HasAnimDictLoaded("anim@mp_player_intcelebrationmale@air_shagging") do
+                                        Citizen.Wait(100)
+                                    end
+
+                                    TaskPlayAnim(playerPed, "anim@mp_player_intcelebrationmale@air_shagging",
+                                        "air_shagging", 8.0, -8.0, -1, 49, 0, false, false, false)
+
+                                    attached = true
+                                else
+                                    print("Hick Ahmaqi To 10m Shoma Nist.")
+
+                                    print("There R No Idiots Within 10m Of U.")
+                                end
+                            end
+
+                            local function detachFromPlayer()
+                                local playerPed = PlayerPedId()
+
+                                DetachEntity(playerPed, true, false)
+
+                                ClearPedTasks(playerPed)
+
+                                attached = false
+
+                                print("Ahmaqi Ke Peida Karde Bodi Ro Vel Kardi, [ServersError Say] Behet Tabrik Migam!")
+
+                                print("U Let Go Of The Fool U Found, [ServersError Say] I Congratulate U!")
+                            end
+
+                            local function checkForDetach()
+                                while true do
+                                    Wait(0)
+
+                                    if attached and IsControlJustPressed(0, 177) then -- Backspace
+                                        detachFromPlayer()
+                                    end
+                                end
+                            end
+
+                            attachToPlayer()
+
+                            Citizen.CreateThread(checkForDetach)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Cling To Player ( 10m ) Option Runned!")
+                    elseif selectedIndexTroll == 14 then
+                        Citizen.CreateThread(function()
+                            pcall(function()
+                                local inputCompleted = false
+
+                                if inputCompleted then return end
+
+                                inputCompleted = true
+
+                                local inputActive = true
+
+                                local NCteamGunName = nil
+
+                                AddTextEntry('FMMC_KEY_TIP1', "Enter The Weapon Name ( Like: WEAPON_ADVANCEDRIFLE ):")
+
+                                DisplayOnscreenKeyboard(1, "FMMC_KEY_TIP1", "", "WEAPON_", "", "", "", 30)
+
+                                while inputActive do
+                                    Citizen.Wait(0)
+
+                                    if UpdateOnscreenKeyboard() == 1 then
+                                        local result = GetOnscreenKeyboardResult()
+
+                                        if result and result ~= "" then
+                                            NCteamGunName = result
+                                        end
+
+                                        inputActive = false
+                                    elseif UpdateOnscreenKeyboard() == 2 then
+                                        inputActive = false
+                                    end
+                                end
+
+                                if not NCteamGunName or not IsWeaponValid(NCteamGunName) then
+                                    print("[ServersError Say] Invalid Weapon Name! Ped Not Spawned.")
+
+                                    return
+                                end
+
+                                local npcModel = GetHashKey("a_m_m_skater_01")
+
+                                RequestModel(npcModel)
+
+                                while not HasModelLoaded(npcModel) do
+                                    Citizen.Wait(10)
+                                end
+
+                                if HasModelLoaded(npcModel) then
+                                    local playerPed = PlayerPedId()
+
+                                    local playerCoords = GetEntityCoords(playerPed)
+
+                                    local npcPed = CreatePed(4, npcModel, playerCoords.x + 2.0, playerCoords.y,
+                                        playerCoords.z, 0.0, true, false)
+
+                                    local weaponHash = GetHashKey(NCteamGunName)
+
+                                    GiveWeaponToPed(npcPed, weaponHash, 250, true, true)
+
+                                    SetPedArmour(npcPed, 100)
+
+                                    SetEntityMaxHealth(npcPed, 200)
+
+                                    SetEntityHealth(npcPed, 200)
+
+                                    SetEntityInvincible(npcPed, true) -- God Mode
+
+                                    Citizen.CreateThread(function()
+                                        while DoesEntityExist(npcPed) do
+                                            local npcCoords = GetEntityCoords(npcPed)
+
+                                            local nearbyPlayers = GetNearbyPlayers(npcCoords, 50.0)
+
+                                            for _, targetPed in pairs(nearbyPlayers) do
+                                                if targetPed ~= playerPed then
+                                                    TaskShootAtEntity(npcPed, targetPed, 3000, "FIRING_PATTERN_FULL_AUTO")
+
+                                                    Citizen.Wait(500)
+
+                                                    ReloadWeapon(npcPed)
+
+                                                    Citizen.Wait(500)
+                                                end
+                                            end
+
+                                            Citizen.Wait(500)
+                                        end
+                                    end)
+
+                                    SetModelAsNoLongerNeeded(npcModel)
+                                else
+                                    print("[ServersError Say] Model Not Loaded!")
+                                end
+
+                                function IsWeaponValid(weaponName)
+                                    local weaponHash = GetHashKey(weaponName)
+
+                                    return weaponHash ~= 0 and HasPedGotWeapon(PlayerPedId(), weaponHash, false)
+                                end
+
+                                function GetNearbyPlayers(coords, radius)
+                                    local players = {}
+
+                                    for _, playerId in ipairs(GetActivePlayers()) do
+                                        local ped = GetPlayerPed(playerId)
+
+                                        local pedCoords = GetEntityCoords(ped)
+
+                                        local distance = #(coords - pedCoords)
+
+                                        if distance <= radius then
+                                            table.insert(players, ped)
+                                        end
+                                    end
+
+                                    return players
+                                end
+
+                                function ReloadWeapon(ped)
+                                    if IsPedArmed(ped, 6) then
+                                        SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
+
+                                        Citizen.Wait(100)
+
+                                        SetCurrentPedWeapon(ped, GetHashKey(NCteamGunName), true)
+                                    end
+                                end
+                            end)
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Add God Mode Modle Fighter ( Manual Reload ) Option Runned!")
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+pcall(function()
+    local menuVisibleMisc = false
+
+    local selectedIndexMisc = 1
+
+    local menuItemsMisc = { "Misc" }
+
+    local submenuVisibleMiscMisc = false
+
+    local rgbTimerMisc = 0
+
+    local r, g, b = 255, 0, 0
+
+    local espActive = false
+
+    local espThread = nil
+
+    local CrosshairActive = false
+
+    local CrosshairThread = nil
+
+    function showLoadingScreenMisc()
+
+    end
+
+    function updateRGBMisc()
+        rgbTimerMisc = rgbTimerMisc + 1
+
+        if rgbTimerMisc > 0 and rgbTimerMisc <= 100 then
+            r = 255
+
+            g = rgbTimerMisc * 2.55
+
+            b = 0
+        elseif rgbTimerMisc > 100 and rgbTimerMisc <= 200 then
+            r = 255 - (rgbTimerMisc - 100) * 2.55
+
+            g = 255
+
+            b = 0
+        elseif rgbTimerMisc > 200 and rgbTimerMisc <= 300 then
+            r = 0
+
+            g = 255
+
+            b = (rgbTimerMisc - 200) * 2.55
+        elseif rgbTimerMisc > 300 and rgbTimerMisc <= 400 then
+            r = 0
+
+            g = 255 - (rgbTimerMisc - 300) * 2.55
+
+            b = 255
+        elseif rgbTimerMisc > 400 and rgbTimerMisc <= 500 then
+            r = (rgbTimerMisc - 400) * 2.55
+
+            g = 0
+
+            b = 255
+        elseif rgbTimerMisc > 500 and rgbTimerMisc <= 600 then
+            r = 255
+
+            g = 0
+
+            b = 255 - (rgbTimerMisc - 500) * 2.55
+        end
+
+        if rgbTimerMisc > 600 then
+            rgbTimerMisc = 0
+        end
+    end
+
+    function drawMenuMisc()
+        -- print("Nicotine Team Menu Misc Options ( v Beta ) Runned!")
+
+        if menuVisibleMisc then
+            updateRGBMisc()
+
+            local menuWidthMisc = 0.25
+
+            local menuHeightMisc = #menuItemsMisc * 0.045 + 0.03
+
+            local menuXMisc = 0.5
+
+            local menuYMisc = 0.5 - menuHeightMisc / 2
+
+            DrawRect(menuXMisc, menuYMisc + menuHeightMisc / 2, menuWidthMisc + 0.004, menuHeightMisc + 0.004, r, g, b,
+                180)
+
+            DrawRect(menuXMisc, menuYMisc + menuHeightMisc / 2, menuWidthMisc, menuHeightMisc, 0, 0, 0, 200)
+
+            SetTextFont(4)
+
+            SetTextProportional(1)
+
+            SetTextScale(0.0, 0.6)
+
+            SetTextColour(r, g, b, 255)
+
+            SetTextCentre(true)
+
+            SetTextDropShadow(2, 0, 0, 0, 255)
+
+            SetTextEntry("STRING")
+
+            AddTextComponentString("~y~NicotineTM Lua Menu")
+
+            DrawText(menuXMisc, menuYMisc - 0.03)
+
+            for i = 1, #menuItemsMisc do
+                if selectedIndexMisc == i then
+                    DrawRect(menuXMisc, menuYMisc + 0.045 * i, menuWidthMisc, 0.045, r, g, b, 150)
+
+                    SetTextColour(0, 0, 0, 255)
+                else
+                    SetTextColour(255, 255, 255, 255)
+                end
+
+                SetTextFont(4)
+
+                SetTextProportional(1)
+
+                SetTextScale(0.0, 0.5)
+
+                SetTextCentre(true)
+
+                SetTextDropShadow(1, 0, 0, 0, 255)
+
+                SetTextEntry("STRING")
+
+                if menuItemsMisc[i] == "ESP" then
+                    local espStatus = espActive and " ( On )" or " ( Off )"
+
+                    AddTextComponentString(menuItemsMisc[i] .. espStatus)
+                elseif menuItemsMisc[i] == "Crosshair" then
+                    local crosshairStatus = CrosshairActive and " ( On )" or " ( Off )"
+
+
+                    AddTextComponentString(menuItemsMisc[i] .. crosshairStatus)
+                else
+                    AddTextComponentString(menuItemsMisc[i])
+                end
+
+                DrawText(menuXMisc, menuYMisc + 0.045 * i - 0.015)
+            end
+        end
+    end
+
+    function toggleMiscMenu()
+        if submenuVisibleMiscMisc then
+            menuItemsMisc = { "Misc"
+
+            }
+        else
+            menuItemsMisc = { "Misc", "ESP", "Crosshair", "Dumper" }
+        end
+
+        submenuVisibleMiscMisc = not submenuVisibleMiscMisc
+
+        selectedIndexMisc = 1
+    end
+
+    Citizen.CreateThread(function()
+        showLoadingScreenMisc()
+
+        while true do
+            Citizen.Wait(0)
+
+            if IsControlJustReleased(1, 20) then -- Z
+                menuVisibleMisc = not menuVisibleMisc
+            end
+
+            if menuVisibleMisc and IsControlJustReleased(1, 322) then -- ESC
+                menuVisibleMisc = false
+            end
+
+            if menuVisibleMisc then
+                DisableAllControlActions(0)
+
+                EnableControlAction(0, 20, true)  -- Z
+
+                EnableControlAction(0, 172, true) -- Page Up
+
+                EnableControlAction(0, 173, true) -- Page Down
+
+                EnableControlAction(0, 191, true) -- Enter
+
+                drawMenuMisc()
+
+                if IsControlJustReleased(1, 172) then -- Page Up
+                    selectedIndexMisc = selectedIndexMisc - 1
+
+                    if selectedIndexMisc < 1 then
+                        selectedIndexMisc = #menuItemsMisc
+                    end
+                elseif IsControlJustReleased(1, 173) then -- Page Down
+                    selectedIndexMisc = selectedIndexMisc + 1
+
+                    if selectedIndexMisc > #menuItemsMisc then
+                        selectedIndexMisc = 1
+                    end
+                end
+
+                if IsControlJustReleased(1, 191) then -- Enter
+                    if selectedIndexMisc == 1 then
+                        toggleMiscMenu()
+                    elseif selectedIndexMisc == 2 then
+                        pcall(function()
+                            espActive = not espActive
+
+                            function RGBRainbow(frequency)
+                                local result = {}
+
+                                local curtime = GetGameTimer() / 1000
+
+                                local amplitude = 127
+
+                                local offset = 128
+
+                                local phaseShift = 2
+
+                                result.r = math.floor(math.sin(curtime * frequency) * amplitude + offset)
+
+                                result.g = math.floor(math.sin(curtime * frequency + phaseShift) * amplitude + offset)
+
+                                result.b = math.floor(math.sin(curtime * frequency + 2 * phaseShift) * amplitude + offset)
+
+                                return result
+                            end
+
+                            local DrawLineWithCoords = function(beginCoords, endCoords, r, g, b, a)
+                                DrawLine(beginCoords.x, beginCoords.y, beginCoords.z, endCoords.x, endCoords.y,
+                                    endCoords.z, r, g, b, a)
+                            end
+
+                            local GetOffset = function(ped, offsetX, offsetY, offsetZ)
+                                return GetOffsetFromEntityInWorldCoords(ped, offsetX, offsetY, offsetZ)
+                            end
+
+                            local function DrawText3D(x, y, z, text)
+                                local onScreen, _x, _y = World3dToScreen2d(x, y, z)
+
+                                local px, py, pz = table.unpack(GetGameplayCamCoords())
+
+                                SetTextScale(0.35, 0.35)
+
+                                SetTextFont(4)
+
+                                SetTextProportional(1)
+
+                                SetTextColour(255, 255, 255, 215)
+
+                                SetTextEntry("STRING")
+
+                                SetTextCentre(1)
+
+                                AddTextComponentString(text)
+
+                                DrawText(_x, _y)
+
+                                local factor = (string.len(text)) / 370
+
+                                DrawRect(_x, _y + 0.0125, 0.015 + factor, 0.03, 0, 0, 0, 150)
+                            end
+
+                            local function DrawSkeleton(ped, r, g, b)
+                                local boneIds = {
+
+                                    head = 31086,
+
+                                    neck = 39317,
+
+                                    spine = 24816,
+
+                                    leftHand = 18905,
+
+                                    rightHand = 57005,
+
+                                    leftFoot = 14201,
+
+                                    rightFoot = 52301,
+
+                                }
+
+                                local headPos = GetPedBoneCoords(ped, boneIds.head)
+
+                                local neckPos = GetPedBoneCoords(ped, boneIds.neck)
+
+                                local spinePos = GetPedBoneCoords(ped, boneIds.spine)
+
+                                local leftHandPos = GetPedBoneCoords(ped, boneIds.leftHand)
+
+                                local rightHandPos = GetPedBoneCoords(ped, boneIds.rightHand)
+
+                                local leftFootPos = GetPedBoneCoords(ped, boneIds.leftFoot)
+
+                                local rightFootPos = GetPedBoneCoords(ped, boneIds.rightFoot)
+
+                                DrawLineWithCoords(headPos, neckPos, r, g, b, 255)
+
+                                DrawLineWithCoords(neckPos, spinePos, r, g, b, 255)
+
+                                DrawLineWithCoords(spinePos, leftHandPos, r, g, b, 255)
+
+                                DrawLineWithCoords(spinePos, rightHandPos, r, g, b, 255)
+
+                                DrawLineWithCoords(spinePos, leftFootPos, r, g, b, 255)
+
+                                DrawLineWithCoords(spinePos, rightFootPos, r, g, b, 255)
+                            end
+
+                            if espActive then
+                                if not espThread then
+                                    espThread = Citizen.CreateThread(function()
+                                        while espActive do
+                                            Citizen.Wait(0)
+
+                                            local rainbow = RGBRainbow(1.0)
+
+                                            local r, g, b = rainbow.r, rainbow.g, rainbow.b
+
+                                            local playerCoords = GetEntityCoords(PlayerPedId())
+
+                                            for _, ped in ipairs(GetGamePool('CPed')) do
+                                                local pedCoords = GetEntityCoords(ped)
+
+                                                local distance = Vdist(playerCoords, pedCoords)
+
+                                                if distance <= 370.0 then
+                                                    local playerId = NetworkGetPlayerIndexFromPed(ped)
+
+                                                    local playerName = GetPlayerName(playerId)
+
+                                                    local serverId = GetPlayerServerId(playerId)
+
+                                                    local textCoords = vector3(pedCoords.x, pedCoords.y,
+                                                        pedCoords.z + 1.0)
+
+                                                    DrawText3D(textCoords.x, textCoords.y, textCoords.z,
+                                                        playerName .. " [ID: " .. serverId .. "]")
+
+                                                    local boxSizeX, boxSizeY, boxHeight = 0.3, 0.3, 1.0
+
+                                                    local offsets = {
+
+                                                        { -boxSizeX, -boxSizeY, -boxHeight },
+
+                                                        { boxSizeX,  -boxSizeY, -boxHeight },
+
+                                                        { boxSizeX,  boxSizeY,  -boxHeight },
+
+                                                        { -boxSizeX, boxSizeY,  -boxHeight },
+
+                                                        { -boxSizeX, -boxSizeY, boxHeight },
+
+                                                        { boxSizeX,  -boxSizeY, boxHeight },
+
+                                                        { boxSizeX,  boxSizeY,  boxHeight },
+
+                                                        { -boxSizeX, boxSizeY,  boxHeight },
+
+                                                    }
+
+                                                    for i = 1, 4 do
+                                                        local beginCoords = GetOffset(ped, table.unpack(offsets[i]))
+
+                                                        local endCoords = GetOffset(ped, table.unpack(offsets[i % 4 + 1]))
+
+                                                        DrawLineWithCoords(beginCoords, endCoords, r, g, b, 255)
+                                                    end
+
+                                                    for i = 5, 8 do
+                                                        local beginCoords = GetOffset(ped, table.unpack(offsets[i]))
+
+                                                        local endCoords = GetOffset(ped, table.unpack(offsets[i % 4 + 5]))
+
+                                                        DrawLineWithCoords(beginCoords, endCoords, r, g, b, 255)
+                                                    end
+
+                                                    for i = 1, 4 do
+                                                        local beginCoords = GetOffset(ped, table.unpack(offsets[i]))
+
+                                                        local endCoords = GetOffset(ped, table.unpack(offsets[i + 4]))
+
+                                                        DrawLineWithCoords(beginCoords, endCoords, r, g, b, 255)
+                                                    end
+
+                                                    DrawSkeleton(ped, r, g, b)
+
+                                                    DrawLine(playerCoords.x, playerCoords.y, playerCoords.z, pedCoords.x,
+                                                        pedCoords.y, pedCoords.z, r, g, b, 255)
+                                                end
+                                            end
+                                        end
+
+                                        espThread = nil
+                                    end)
+                                end
+                            else
+                                if espThread then
+                                    espActive = false
+
+                                    Citizen.Wait(100)
+                                end
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print(
+                            "Nicotine Team ESP ( RGB ESP Box, RGB ESP Line, RGB ESP Skeleton Display, ESP Player Name And ESP Server ID Within 370m ) Option Runned!")
+                    elseif selectedIndexMisc == 3 then
+                        pcall(function()
+                            CrosshairActive = not CrosshairActive
+
+                            local circleSize = 0.002
+
+                            local circleColor = { 255, 0, 0, 255 }
+
+                            function DrawCrosshair()
+                                local screenX, screenY = 0.5, 0.5
+
+                                local radiusX, radiusY = circleSize, circleSize * (GetAspectRatio() or 1)
+
+                                DrawRect(screenX, screenY, radiusX, radiusY, circleColor[1], circleColor[2],
+                                    circleColor[3], circleColor[4])
+                            end
+
+                            if CrosshairActive then
+                                if not CrosshairThread then
+                                    CrosshairThread = Citizen.CreateThread(function()
+                                        while CrosshairActive do
+                                            Citizen.Wait(0)
+
+                                            DrawCrosshair()
+                                        end
+
+                                        CrosshairThread = nil
+                                    end)
+                                end
+                            else
+                                if CrosshairThread then
+                                    CrosshairActive = false
+
+                                    Citizen.Wait(100)
+                                end
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Crosshair Option Runned!")
+                    elseif selectedIndexMisc == 4 then
+                        pcall(function()
+                            for i = 0, GetNumResources(), 1 do
+                                local resourceName = GetResourceByFindIndex(i)
+
+                                if resourceName and GetResourceState(resourceName) == "started" then
+                                    resourceindex = 0
+
+                                    while true do
+                                        local files = GetResourceMetadata(resourceName, "client_script", resourceindex)
+
+                                        if files then
+                                            print("(*")
+
+                                            print("(^" .. resourceName .. "/" .. files .. "^)")
+
+                                            print(LoadResourceFile(resourceName, files))
+
+                                            print("*)")
+
+                                            resourceindex = resourceindex + 1
+                                        else
+                                            print("No Files Found In The SRCs.")
+
+
+                                            break
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+
+                        Citizen.Wait(70)
+
+                        print("Nicotine Team Dumper ( Print Client Scripts ) Option Runned!")
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+
+-- End.
